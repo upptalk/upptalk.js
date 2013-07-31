@@ -2,6 +2,10 @@
 
 'use strict';
 
+var DEBUG = function(message) {
+  console.log('yuilop.js ' + message)
+};
+
 var L = window.Lightstring;
 var JID = L.JID;
 var Stanza = L.Stanza;
@@ -11,22 +15,37 @@ var unesc = L.unescape;
 var Y; //Yuilop
 var conn; //Yuilop.connection
 var conf; //Yuilop.config
-var send; //Yuilop.sendStanza
+var send; //Yuilop.send
 var req;  //Yuilop.requet
-var login; //Yuilop.login
+var jid; //Yuilp.jid
+var username; //Yuilop.username
 var password; //Yuilop.password
+var services; //Yuilop.services
+var request; //Yuilop.request
+
+//json-rpc
+var callbacks = {};
 
 var Yuilop = {
   jid: null,
   login: null,
   password: null,
   connection: null,
+  socket: null,
   config: {},
+  services: {},
+  events: {
+    receipt: function() {},
+    chatstate: function() {},
+    groupchat: function() {},
+    message: function() {},
+    presence: function() {}
+  },
   sendStanza: function(stanza, callback) {
     if (!callback)
       return this.connection.send(stanza);
 
-    this.connection.send(stanza,
+    conn.send(stanza,
       //success
       function(stanza) {
         callback(null, stanza);
@@ -36,6 +55,15 @@ var Yuilop = {
         callback(stanza);
       }
     );
+  },
+  sendRPC: function(request, callback) {
+    this.enchufe.send(request, callback)
+  },
+  send: function(message, callback) {
+    if (typeof message === 'string' || message instanceof Stanza)
+      Y.sendStanza(message, callback);
+    else
+      Y.sendRPC(message, callback);
   },
   request: function(options, callback, onProgress) {
     var req = new XMLHttpRequest();
@@ -63,8 +91,13 @@ var Yuilop = {
 
     req.open(options.method || 'GET', options.url, true);
 
-    if (options.login && options.password) {
-      var creds = options.login + ':' + options.password;
+    if (options.auth === true) {
+      options.username = Y.username;
+      options.password = Y.password; 
+    }
+
+    if (options.username && options.password) {
+      var creds = options.username + ':' + options.password;
       req.setRequestHeader('Authorization', 'Basic ' + btoa(creds));
     }
     if (options.responseType)
@@ -76,35 +109,96 @@ var Yuilop = {
 
     req.send(options.post || null);
   },
+  setCredentials: function(username, password) {
+    this.jid = new JID(username);
+    jid = this.jid;
+    if (!jid.domain)
+      jid.domain = Yuilop.domain;
+
+    this.jid = jid;
+    this.username = jid.local;
+    this.password = password;
+  },
+  ////////////
+  //presence//
+  ////////////
+  sendPresence: function() {
+    send('<presence/>');
+  },
   //////////////
   //connection//
   //////////////
-  connect: function(login, password) {
-    var jid = new JID(login);
-    if (!jid.domain)
-      jid.domain = conf['domain'];
+  generateLoginBarcode: function(token) {
+    var data = document.location.protocol + '//' + document.location.host + '/barcode.xhml?token=' + token;
+    var qr = new JSQR();
+    var code = new qr.Code();
+    code.encodeMode = code.ENCODE_MODE.BYTE;
+    code.version = code.DEFAULT;
+    code.errorCorrection = code.ERROR_CORRECTION.H;
+    var input = new qr.Input();
+    input.dataType = input.DATA_TYPE.TEXT;
+    input.data = data;
+    var matrix = new qr.Matrix(input, code);
+    matrix.scale = 4;
+    matrix.margin = 0;
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('width', matrix.pixelWidth);
+    canvas.setAttribute('height', matrix.pixelWidth);
+    canvas.getContext('2d').fillStyle = 'rgb(0,0,0)';
+    matrix.draw(canvas, 0, 0);
+    return canvas;
+  },
+  connect: function(callback) {
+    var done = 0;
 
-    this.jid = jid;
-    this.login = jid.local;
+    //XMPP
+    this.jid.resource = 'Webx1.0xx' + Lightstring.id() + 'x';
+    this.connection = new L.Connection('wss://' + services['proxy']);
+    conn = this.connection;
+    conn.onOpen = function() {
+      DEBUG('XMPP open');
+    };
+    conn.onConnected = function() {
+      DEBUG('XMPP authenticated');
+      if (callback && ++done === 2)
+        callback();
+    };
+    conn.onFailure = function(err) {
+      callback(true)
+    };
+    conn.onStanza = Y.routeStanza;
+    conn.connect(this.jid, this.password);
 
+    //JSON-RPC
+    var enchufe = new Enchufe('wss://' + services['happy']);
+    enchufe.open((function(err) {
+      if (err)
+        return callback(err);
 
-    jid.resource = 'Webx1.0xx' + Lightstring.id() + 'x';
+      DEBUG('JSON-RPC open')
 
-    this.connection = new L.Connection(conf['xmpp-proxy']);
-    this.connection.onConnected = Yuilop.onConnected();
-    this.connection.connect(jid, password);
+      enchufe.authenticate(this.jid.bare, this.password, function(err) {
+        if (err)
+          return callback(err);
+
+        DEBUG('JSON-RPC authenticated')
+        if (callback && ++done === 2)
+          callback()
+      });
+    }).bind(this));
+    this.enchufe = enchufe;
   },
   reconnect: function() {
     this.connection.connect(this.jid, this.password);
   },
   disconnect: function() {
-    this.connection.send('<presence type="unavailable"/>');
-    this.connection.disconnect();
+    send('<presence type="unavailable"/>');
+    conn.disconnect();
   },
   getLoginToken: function(callback) {
     var options = {
       method: 'GET',
-      url: conf['login-server'] + '/token'
+      url: 'https://' + services['login'] + '/token'
     };
     request(options, function (err, res) {
       if (err)
@@ -113,14 +207,16 @@ var Yuilop = {
       callback(null, res);
     });
   },
-  openLoginTunnel: function(token, callback) {
+  sendLoginToken: function(token, callback) {
     var socket;
 
     var onMessage = function(e) {
-      var creds = JSON.parse(e.data);
-      DEBUG('login tunnel message');
-
-      callback(null, creds);
+      var message = JSON.parse(e.data);
+      var result = message.result;
+      if (!result)
+        callback(message);
+      else
+        callback(null, result);
 
       close();
     };
@@ -141,19 +237,28 @@ var Yuilop = {
     }
     var onOpen = function() {
       DEBUG('login tunnel opened');
-      this.send(token);
+      var request = {
+        "jsonrpc": "2.0",
+        "method": "token",
+        "params": {
+          "value": token,
+        },
+        "id": "1"
+      };
+      this.send(JSON.stringify(request));
     };
     var onError = function(e) {
       socket.removeEventListener('close', onClose);
       callback(true);
     };
     var open = function() {
-      socket = new WebSocket(conf['login-tunnel']);
+      socket = new WebSocket('wss://' + services['happy']);
       socket.addEventListener('open', onOpen);
       socket.addEventListener('close', onClose);
       socket.addEventListener('error', onError);
       socket.addEventListener('message', onMessage);
     };
+    open();
   },
   /////////////
   //Groupchat//
@@ -343,21 +448,22 @@ var Yuilop = {
 
     var payload;
     if (message.file)
-      payload = this.getStanzaPayloadForFileMessage;
+      payload = this.getStanzaPayloadForFileMessage(message);
     else if (message.location)
-      payload = this.getStanzaPayloadForLocationMessage;
+      payload = this.getStanzaPayloadForLocationMessage(message);
     else
-      payload = this.getStanzaPayloadForTextMessage;
+      payload = this.getStanzaPayloadForTextMessage(message);
 
     var stanza = (
       '<message to="' + to + '" id="' + message.id + '" type="' + type + '">' +
         payload +
         '<request xmlns="urn:xmpp:receipts"/>' +
-        '<nick xmlns="http://jabber.org/protocol/nick">' + Yuilop.modules.account.nickname + '</nick>' +
+        '<nick xmlns="http://jabber.org/protocol/nick">' + Y.username + '</nick>' +
       '</message>'
     );
 
     send(stanza);
+    return message.id
   },
   getStanzaPayloadForTextMessage: function(message) {
     var payload = (
@@ -398,39 +504,67 @@ var Yuilop = {
   /////////
   //Cloud//
   /////////
-  getStorage: function(callback) {
-    var options = {
-      method: 'GET',
-      url: conf['api-server'] + '/storage',
-      login: Yuilop.jid,
-      password: Yuilop.password,
-    };
+  // getStorage: function(callback) {
+  //   var options = {
+  //     method: 'GET',
+  //     url: conf['api-server'] + '/storage',
+  //     login: Yuilop.jid,
+  //     password: Yuilop.password,
+  //   };
 
-    request(options, function(err, result) {
-      if (err)
-        return callback(true);
+  //   request(options, function(err, result) {
+  //     if (err)
+  //       return callback(true);
 
-      var result = JSON.parse(result);
-      callback(null, result);
-    });
-  },
-  deleteDevice: function(deviceID, callback) {
-    var options = {
-      method: 'DELETE',
-      url: Yuilop.config['api-server'] + '/storage/devices/' + aId,
-      login: Y.jid,
-      password: Y.password
-    };
-    request(options, function(err) {
-      if (err)
-        return callback(true);
+  //     var result = JSON.parse(result);
+  //     callback(null, result);
+  //   });
+  // },
+  // deleteDevice: function(deviceID, callback) {
+  //   var options = {
+  //     method: 'DELETE',
+  //     url: Yuilop.config['api-server'] + '/storage/devices/' + aId,
+  //     login: Y.jid,
+  //     password: Y.password
+  //   };
+  //   request(options, function(err) {
+  //     if (err)
+  //       return callback(true);
 
-      callback();
-    });
-  },
+  //     callback();
+  //   });
+  // },
   ////////////
   //Contacts//
   ////////////
+  getPhones: function(number, callback) {
+    var to = new JID();
+    to.local = number;
+    to.domain = services['user'];
+    var iq = (
+      '<iq type="get" to="' + to + '">' +
+        '<contacts xmlns="com.yuilop.contact"/>' +
+      '</iq>'
+    );
+    send(iq, function(err, stanza) {
+      if (err)
+        return callback(err);
+
+      var phones = {};
+      var contactsEl = stanza.getChild('contacts');
+      if (contactsEl) {
+        var phoneEls = contactsEl.getChildren('phone');
+        for (var i = 0, length = phoneEls.length; i < length; i++) {
+          var phoneEl = phoneEls[i];
+          var number = phoneEl.attrs['number'];
+          var type = phoneEl.attrs['type'];
+          var phone = number;
+          phones[type] = phone;
+        }
+      }
+      callback(null, phones);
+    });
+  },
   getLastActivity: function(to, callback) {
     var stanza = (
       '<iq type="get" to="' + to + '">' +
@@ -441,7 +575,7 @@ var Yuilop = {
       if (err)
         return callback(true);
 
-      var queryEl = reply.getChild('query', 'jabber:iq:last');
+      var queryEl = res.getChild('query', 'jabber:iq:last');
       if (!queryEl)
         return callback();
 
@@ -449,8 +583,9 @@ var Yuilop = {
       if (!seconds)
         return callback();
 
-      var date = new Date(parseInt(seconds));
-      callback(null, date);
+      callback(null, seconds);
+      // var date = new Date(parseInt(seconds));
+      // callback(null, date);
     });
   },
   allowSubscription: function(to) {
@@ -529,6 +664,17 @@ var Yuilop = {
       aCallback(null, contacts, ver);
     });
   },
+  getStorage: function(callback) {
+    var req = {
+      'method': 'get',
+      'params': {
+        'path': '/'
+      }
+    };
+    send(req, function(res) {
+      callback(res.error, res.result);
+    })
+  },
   //////////////
   //Multimedia//
   //////////////
@@ -549,34 +695,52 @@ var Yuilop = {
         callback(null, JSON.parse(result));
     }, onProgress);
   },
+  getAvatar: function(device, contact, callback) {
+    var options = {
+      auth: true,
+      url: 'https://' + Yuilop.services['happy'] + '/storage/devices/' + device + '/contacts/' + contact + '/avatar',
+      //workaround safari, no support for responseType blob :/
+      responseType: 'arraybuffer'
+    };
+    
+    this.request(options, function(err, result) {
+      if (err)
+        return callback(err);
+
+      var contentType = this.getResponseHeader('Content-Type');
+      var blob = new Blob([result], {type: contentType});
+
+      callback(null, blob);
+    })
+  },
   //////////
   //Energy//
   //////////
   getEnergyLeft: function(callback) {
     var stanza = (
-      '<iq to="' + conf['energy-service'] + '" type="get">' +
+      '<iq to="' + services['energy'] + '" type="get">' +
         '<energy xmlns="com.yuilop.energy"/>' +
       '</iq>'
     );
     send(stanza, function(err, res) {
       if (err)
-        return callback(true);
+        return callback(err);
 
       var energyEl = res.getChild('energy');
       if (!energyEl)
-        return callback(true);
+        return callback(res);
       var energy = energyEl.attrs['energy'];
       if (!energy)
-        return callback(true);
+        return callback(res);
 
       callback(null, energy);
     });
   },
-  getEnergCosts: function(number, callback) {
+  getEnergyCosts: function(number, callback) {
     var from = conn.jid.bare;
-    var to = new L.JID(number + '@' + conf.domain);
+    var to = number ? new JID(number + '@' + conf.domain) : jid.bare;
     var stanza = (
-      '<iq to="' + conf['energy-service'] + '" type="get">' +
+      '<iq to="' + services['energy'] + '" type="get">' +
         '<energy xmlns="com.yuilop.energy#remaining"  from="' + from + '" to="' + to + '">' +
           '<voice/>' +
           '<sms/>' +
@@ -614,12 +778,12 @@ var Yuilop = {
 };
 
 Y = Yuilop;
-conn = Y.connection;
 conf = Y.config;
 send = Y.send;
-req = Y.request;
-login = Y.login;
+username = Y.username;
 password = Y.password;
+services = Y.services;
+request = Y.request;
 
 window.Yuilop = Y;
 
