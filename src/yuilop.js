@@ -110,8 +110,7 @@ var Yuilop = {
     req.send(options.post || null);
   },
   setCredentials: function(username, password) {
-    this.jid = new JID(username);
-    jid = this.jid;
+    var jid = new JID(username);
     if (!jid.domain)
       jid.domain = Yuilop.domain;
 
@@ -166,7 +165,15 @@ var Yuilop = {
     conn.onFailure = function(err) {
       callback(true)
     };
-    conn.onStanza = Y.routeStanza;
+    conn.onStanza = function(stanza) {
+      console.log('stanza in:')
+      console.log(stanza.toString());
+      Y.routeStanza(stanza);
+    };
+    conn.onOut = function(stanza) {
+      console.log('stanza out:')
+      console.log(stanza.toString());
+    }
     conn.connect(this.jid, this.password);
 
     //JSON-RPC
@@ -299,11 +306,13 @@ var Yuilop = {
     callback();
   },
   getGroupchatParticipants: function(groupchat, callback) {
+    var jid = this.getJID(groupchat, services['groupchat']);
     var stanza = (
-      '<iq to="' + groupchat + '" type="get">' +
+      '<iq to="' + jid + '" type="get">' +
         '<query xmlns="http://jabber.org/protocol/muc#admin"/>' +
       '</iq>'
     );
+
     send(groupchat, function(err, res) {
       if (err)
         return callback(true);
@@ -313,7 +322,7 @@ var Yuilop = {
       var participants = [];
       for (var i = 0, length = itemsEl.length; i < length; i++) {
         participants.push({
-          jid: new JID(itemsEl[i].attrs.jid),
+          id: new JID(itemsEl[i].attrs.jid).resource,
           name: itemsEl[i].attrs.nick || this.jid.local,
           affiliation: itemsEl[i].attrs.affiliation,
           role: itemsEl[i].attrs.role,
@@ -361,11 +370,11 @@ var Yuilop = {
   },
   getGroupchats: function(callback) {
     var stanza = (
-      '<iq to="' + conf['groupchat-service'] + '" type="get">' +
+      '<iq to="' + services['groupchat'] + '" type="get">' +
         '<query xmlns="http://jabber.org/protocol/disco#items"/>' +
       '</iq>'
     );
-    send(stanza, function(err, res) {
+    send(stanza, function(err, result) {
       if (err)
         return callback(true);
 
@@ -374,7 +383,7 @@ var Yuilop = {
       var groupchats = [];
       for (var i = 0, length = itemsEl.length; i < length; i++) {
         groupchats.push({
-          jid: new JID(itemsEl[i].attrs.jid),
+          id: new JID(itemsEl[i].attrs.jid).local,
           name: itemsEl[i].attrs.name,
         });
       }
@@ -424,7 +433,7 @@ var Yuilop = {
   ////////
   //Chat//
   ////////
-  sendDeliveryReceipt: function(to, id, type) {
+  sendReceipt: function(to, id, type) {
     var stanza = (
        '<message to="' + to + '" type="chat">' +
          '<' + type + ' xmlns="urn:xmpp:receipts" id="' + id + '"/>' +
@@ -432,19 +441,38 @@ var Yuilop = {
      );
     send(stanza);
   },
-  sendChatState: function(to, state) {
+  sendChatState: function(user, state) {
+    var jid = this.getJID(user);
     var stanza = (
-      '<message to="' + to + '" type="chat">' +
+      '<message to="' + jid + '" type="chat">' +
         '<' + state + ' xmlns="http://jabber.org/protocol/chatstates"/>' +
       '</message>'
     );
     send(stanza);
   },
-  sendChatMessage: function(to, message) {
-    if (!message.id)
-      message.id = L.id();
+  getJID: function(user, domain) {
+    var jid = new JID();
+    jid.local = user;
+    if (domain)
+      jid.domain = domain;
+    if (!jid.domain)
+      jid.domain = Y.domain;
 
-    var type = this.isGroupchat(to) === true ? 'groupchat' : 'chat';
+    return jid;
+  },
+  sendChatMessage: function(user, message) {
+    var id = L.id();
+    var type;
+    var jid;
+
+    if (message.groupchat) {
+      type = 'groupchat';
+      jid = this.getJID(user, services['groupchat']);
+    }
+    else {
+      type = 'chat';
+      jid = this.getJID(user);
+    }
 
     var payload;
     if (message.file)
@@ -455,7 +483,7 @@ var Yuilop = {
       payload = this.getStanzaPayloadForTextMessage(message);
 
     var stanza = (
-      '<message to="' + to + '" id="' + message.id + '" type="' + type + '">' +
+      '<message to="' + jid + '" id="' + id + '" type="' + type + '">' +
         payload +
         '<request xmlns="urn:xmpp:receipts"/>' +
         '<nick xmlns="http://jabber.org/protocol/nick">' + Y.username + '</nick>' +
@@ -463,11 +491,11 @@ var Yuilop = {
     );
 
     send(stanza);
-    return message.id
+    return id;
   },
   getStanzaPayloadForTextMessage: function(message) {
     var payload = (
-      '<body>' + unesc(message.body) + '</body>'
+      '<body>' + unesc(message) + '</body>'
     );
     return payload;
   },
@@ -537,12 +565,11 @@ var Yuilop = {
   ////////////
   //Contacts//
   ////////////
-  getPhones: function(number, callback) {
-    var to = new JID();
-    to.local = number;
-    to.domain = services['user'];
+  getPhones: function(user, callback) {
+    var jid = this.getJID(user, services['user']);
+
     var iq = (
-      '<iq type="get" to="' + to + '">' +
+      '<iq type="get" to="' + jid + '">' +
         '<contacts xmlns="com.yuilop.contact"/>' +
       '</iq>'
     );
@@ -565,9 +592,10 @@ var Yuilop = {
       callback(null, phones);
     });
   },
-  getLastActivity: function(to, callback) {
+  getLastActivity: function(user, callback) {
+    var jid = this.getJID(user);
     var stanza = (
-      '<iq type="get" to="' + to + '">' +
+      '<iq type="get" to="' + jid + '">' +
         '<query xmlns="jabber:iq:last"/>' +
       '</iq>'
     );
@@ -738,7 +766,7 @@ var Yuilop = {
   },
   getEnergyCosts: function(number, callback) {
     var from = conn.jid.bare;
-    var to = number ? new JID(number + '@' + conf.domain) : jid.bare;
+    var to = number ? new JID(number + '@' + conf.domain) : Y.jid.bare;
     var stanza = (
       '<iq to="' + services['energy'] + '" type="get">' +
         '<energy xmlns="com.yuilop.energy#remaining"  from="' + from + '" to="' + to + '">' +

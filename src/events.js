@@ -8,19 +8,15 @@
     if (!(stanza instanceof Lightstring.Element))
       return;
 
-    console.log(stanza);
-
     var from = new JID(stanza.attrs['from']);
     var to = new JID(stanza.attrs['to']);
     var type = stanza.attrs['type'];
     var name = stanza.name;
     var id = stanza.attrs['id'];
-
     //
     //message
     //
     if (name === 'message') {
-      //
       //chatstate
       //
       if (type !== 'groupchat') {
@@ -28,7 +24,7 @@
         chatstates.forEach(function(chatstate) {
           var chatstateEl = stanza.getChild(chatstate, 'http://jabber.org/protocol/chatstates');
           if (chatstateEl) {
-            Y.events.chatState({
+            Y.events.chatstate({
               type: chatstate,
               from: from
             });
@@ -45,7 +41,7 @@
           Y.events.receipt({
             type: receipt,
             from: from,
-            message: id
+            messageId: childEl.attrs['id']
           });
         }
       });
@@ -98,12 +94,23 @@
         }
 
         var message = {
-          from: from,
           id: id,
-          type: type,
           value: value
         };
 
+        if (type === 'groupchat') {
+          message.groupchat = from.local;
+          message.user = from.resource;
+        }
+        else
+          message.user = from.local;
+
+        //
+        //receipt
+        //
+        var receiptEl = stanza.getChild('request', 'urn:xmpp:receipts');
+        if (receiptEl)
+          message.receipt = true;
         //
         //delay
         //
