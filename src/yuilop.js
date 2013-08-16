@@ -144,7 +144,7 @@ var Yuilop = {
   //presence//
   ////////////
   showOnline: function() {
-    var stanza = new Stanza('<presence>');
+    var stanza = new Stanza('<presence/>');
     send(stanza);
   },
   //////////////
@@ -195,7 +195,6 @@ var Yuilop = {
     };
     conn.onOut = function(stanza) {
       console.debug('stanza out:')
-      console.log(stanza)
       console.debug(stanza.toString());
     }
     conn.connect(this.jid, this.password);
@@ -346,7 +345,7 @@ var Yuilop = {
       var participants = [];
       for (var i = 0, length = itemsEl.length; i < length; i++) {
         participants.push({
-          id: new JID(itemsEl[i].attrs.jid).resource,
+          user: new JID(itemsEl[i].attrs.jid).local,
           name: itemsEl[i].attrs.nick || this.jid.local,
           affiliation: itemsEl[i].attrs.affiliation,
           role: itemsEl[i].attrs.role,
@@ -506,10 +505,34 @@ var Yuilop = {
 
     var stanza = this.buildMessageStanza(message);
     stanza.attrs.type = type === 'groupchat' ? type : 'chat';
+    var id = stanza.attrs.id;
 
     send(jid, stanza);
-    return stanza.attrs.id;
+    //don't fire message event if the message was sent from this device
+    if (type === 'groupchat') {
+      var hackId = jid.local + '/' + id;
+      this.sentFromThisDeviceHack[hackId] = true;
+    }
+
+    return id;
   },
+  wasSentFromThisDevice: function(jid, messageid, type) {
+    if (type === 'groupchat') {
+      var hackId = jid + '/' + messageid;
+      if (this.sentFromThisDeviceHack[hackId]) {
+        delete this.sentFromThisDeviceHack[hackId];
+        return true; 
+      }
+      else
+        return false;
+    }
+
+    if (jid.equals(Y.jid))
+      return true;
+
+    return false;
+  },
+  sentFromThisDeviceHack: {},
   // sendGroupchatMessage: function(to, message) {
   //   var jid = this.getJID(groupchat, services['groupchat']);
   //   var stanza = this.buildMessageStanza(message);

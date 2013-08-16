@@ -8,15 +8,33 @@
     if (!(stanza instanceof Lightstring.Element))
       return;
 
+    var type = stanza.attrs['type'];
     var from = new JID(stanza.attrs['from']);
     var to = new JID(stanza.attrs['to']);
-    var type = stanza.attrs['type'];
     var name = stanza.name;
     var id = stanza.attrs['id'];
     //
     //message
     //
     if (name === 'message') {
+      //error, receipt error event
+      if (type === 'error') {
+        var event = {
+          type: 'error',
+          message: id
+        };
+        if (type === 'groupchat') {
+          event.groupchat = from.local;
+          if (jid.resource)
+            event.participant = from.resource;
+        }
+        else
+          event.user = from.local;
+      }
+      //don't fire message event if the message was sent from this device
+      var test = type === 'groupchat' ? from.local : from;
+      if (Y.wasSentFromThisDevice(test, id, type))
+        return
       //chatstate
       //
       if (type !== 'groupchat') {
@@ -38,11 +56,18 @@
       ['received', 'read', 'sent', 'failed'].forEach(function(receipt) {
         var childEl = stanza.getChild(receipt, 'urn:xmpp:receipts');
         if (childEl) {
-          Y.events.receipt({
+          var event = {
             type: receipt,
-            from: from,
-            messageId: childEl.attrs['id']
-          });
+            id: childEl.attrs['id']
+          };
+          if (type === 'groupchat') {
+            event.groupchat = from.local;
+            event.participant = from.resource;
+          }
+          else {
+            event.user = from.local;
+          }
+          Y.events.receipt(event);
         }
       });
       //
@@ -102,8 +127,10 @@
           message.groupchat = from.local;
           message.user = from.resource;
         }
-        else
+        else {
           message.user = from.local;
+          message.device = from.resource;
+        }
 
         //
         //receipt
@@ -122,7 +149,7 @@
         //
         var nickEl = stanza.getChild('nick');
         if (nickEl)
-          message.nick = nickEl.getText();
+          message.name = nickEl.getText();
         //
         //title
         //
