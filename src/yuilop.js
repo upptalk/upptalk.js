@@ -42,7 +42,8 @@ var Yuilop = {
     chatstate: function() {},
     groupchat: function() {},
     message: function() {},
-    presence: function() {}
+    presence: function() {},
+    newGroupChat: function() {}
   },
   getJID: function() {
     if (arguments[0] instanceof JID)
@@ -355,14 +356,16 @@ var Yuilop = {
       callback(null, participants)
     });
   },
-  // leaveGroupchat: function(to, callback) {
-  //   var stanza = (
-  //     '<presence to="' + to + '" type="unavailable"/>'
-  //   );
-  //   send(stanza);
-  //   //FIXME, listen for presence event to call callback
-  //   callback();
-  // },
+  leaveGroupchat: function(to, callback) {
+    var jid = this.getJID(to, services['groupchat']);
+    console.log(jid)
+    var stanza = new Stanza(
+      '<presence type="unavailable"/>'
+    );
+    send(jid, stanza);
+    //FIXME, listen for presence event to call callback
+    callback();
+  },
   // inviteToGroupchat: function(groupchat, user) {
   //   var stanza = (
   //     '<message to="' + groupchat + '">' +
@@ -462,8 +465,9 @@ var Yuilop = {
   sendReceipt: function(to, id, type, groupchat) {
     var domain = groupchat === true ? services['groupchat'] : Y.domain;
     var jid = this.getJID(to, domain);
+    var messageType = groupchat ? 'groupchat' : 'chat';
     var stanza = (
-       '<message type="' + groupchat ? 'groupchat' : 'chat' + '">' +
+       '<message type="' + messageType + '">' +
          '<' + type + ' xmlns="urn:xmpp:receipts" id="' + id + '"/>' +
        '</message>'
      );
@@ -483,12 +487,12 @@ var Yuilop = {
     var id = L.id();
     var value = message.value;
     var payload;
-    if (value.file)
-      payload = this.getStanzaPayloadForFileMessage(value);
-    else if (value.location)
-      payload = this.getStanzaPayloadForLocationMessage(value);
-    else
+    if (typeof value === 'string')
       payload = this.getStanzaPayloadForTextMessage(value);
+    else if (value.multimedia === 'location')
+      payload = this.getStanzaPayloadForLocationMessage(value);
+    else if (value.multimedia === 'file')
+      payload = this.getStanzaPayloadForFileMessage(value);
 
     var stanza = new Stanza(
       '<message id="' + id + '">' +
@@ -557,37 +561,38 @@ var Yuilop = {
   //   send(jid, stanza);
   //   return stanza.attrs.id;
   // },
-  getStanzaPayloadForTextMessage: function(message) {
+  getStanzaPayloadForTextMessage: function(value) {
     var payload = (
-      '<body>' + unesc(message) + '</body>'
+      '<body>' + unesc(value) + '</body>'
     );
     return payload;
   },
-  getStanzaPayloadForLocationMessage: function(message) {
-    var escapedURL = esc(message.location.url);
+  getStanzaPayloadForLocationMessage: function(value) {
+    var escapedURL = esc(value.url);
     var payload = (
       '<body>' + escapedURL + '</body>' +
       '<multimedia xmlns="com.yuilop.multimedia">' +
-        '<location url="' + escapedURL + '" thumbnail="' + esc(message.location.thumbnail) + '"/>' +
+        '<location url="' + escapedURL + '" thumbnail="' + esc(value.thumbnail.url) + '"/>' +
       '</multimedia>' +
       '<geoloc xmlns="http://jabber.org/protocol/geoloc">' +
-        '<lat>' + message.location.latitude + '</lat>' +
-        '<lon>' + message.location.longitude + '</lon>' +
+        '<lat>' + value.latitude + '</lat>' +
+        '<lon>' + value.longitude + '</lon>' +
       '</geoloc>'
     );
+    console.log(payload);
     return payload;
   },
-  getStanzaPayloadForFileMessage: function(message) {
-    var escapedURL = esc(message.file.url);
+  getStanzaPayloadForFileMessage: function(value) {
+    var escapedURL = esc(value.url);
     var payload = (
       '<body>' + escapedURL + '</body>' +
       '<multimedia xmlns="com.yuilop.multimedia">' +
         '<file ' +
-          'name="' + message.file.name + '" ' +
-          'size="' + message.file.size + '" ' +
+          'name="' + value.name + '" ' +
+          'size="' + value.size + '" ' +
           'url="' + escapedURL + '" ' +
-          (message.file.type ? 'type="' + message.file.type +  '" ' : ' ') +
-          (message.file.thumbnail && message.file.thumbnail ? 'thumbnail="' + esc(message.file.thumbnail.url) +  '"' : '') +
+          (value.type ? 'type="' + value.type +  '" ' : ' ') +
+          (value.thumbnail && value.thumbnail.url ? 'thumbnail="' + esc(value.thumbnail.url) +  '"' : '') +
         '/>' +
       '</multimedia>'
     );
@@ -764,26 +769,25 @@ var Yuilop = {
   //Multimedia//
   //////////////
   uploadFile: function(file, callback, onProgress) {
-    if (!(file instanceof Blob) || !(file instanceof File))
-      return callback(true);
+    if (!(file instanceof Blob) && !(file instanceof File))
+      return callback(new Error('Wrong data type'));
 
     this.request({
       method: 'POST',
-      url: conf['media-server'] + '/media',
-      login: login,
-      password: password,
-      post: body
+      url: 'https://' + services['happy'] + '/media',
+      auth: true,
+      post: file
     }, function(err, result) {
       if (err)
-        callback(true);
-      else
-        callback(null, JSON.parse(result));
+        return callback(err);
+
+      callback(null, JSON.parse(result));
     }, onProgress);
   },
   getAvatar: function(device, contact, callback) {
     var options = {
       auth: true,
-      url: 'https://' + Yuilop.services['happy'] + '/storage/devices/' + device + '/contacts/' + contact + '/avatar',
+      url: 'https://' + services['happy'] + '/storage/devices/' + device + '/contacts/' + contact + '/avatar',
       //workaround safari, no support for responseType blob :/
       responseType: 'arraybuffer'
     };

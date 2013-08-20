@@ -44,7 +44,7 @@
           if (chatstateEl) {
             Y.events.chatstate({
               type: chatstate,
-              from: from
+              user: from.local
             });
             return;
           }
@@ -94,9 +94,12 @@
             value.multimedia = 'file';
             value.type = fileEl.attrs.type;
             value.url = fileEl.attrs.url ? Lightstring.unescape(fileEl.attrs.url) : undefined;
-            value.thumbnail = {
-              url: fileEl.attrs.thumbnail ? Lightstring.unescape(fileEl.attrs.thumbnail) : undefined
-            };
+                                          //hack, ANDROID-3790
+            if (fileEl.attrs.thumbnail && !value.type.match('audio/')) {
+              value.thumbnail = {
+                url: fileEl.attrs.thumbnail ? Lightstring.unescape(fileEl.attrs.thumbnail) : undefined
+              };
+            }
             value.size = fileEl.attrs.size,
             value.name = fileEl.attrs.name ? Lightstring.unescape(fileEl.attrs.name) : undefined;
           }
@@ -108,8 +111,12 @@
             var value = {
               multimedia: 'location',
               url: locationEl.attrs.url ? Lightstring.unescape(locationEl.attrs.url) : undefined,
-              thumbnail: locationEl.attrs.thumbnail ? Lightstring.unescape(locationEl.attrs.thumbnail) : undefined,
             };
+            if (locationEl.attrs.thumbnail) {
+              value.thumbnail = {
+                url: Lightstring.unescape(locationEl.attrs.thumbnail)
+              }
+            }
             var geolocEl = stanza.root().getChild('geoloc');
             if (geolocEl) {
               value.latitude = geolocEl.getChild('lat').getText();
@@ -143,7 +150,7 @@
         //
         var delayEl = stanza.getChild('delay');
         if (delayEl)
-          message.timestamp = delay.attrs['stamp'];
+          message.timestamp = delayEl.attrs['stamp'];
         //
         //nick
         //
@@ -167,7 +174,7 @@
       //groupchat joined
       //
       if (id && !type && stanza.getChild('x', 'http://jabber.org/protocol/muc#user')) {
-        return Y.events.newGroupchat({
+        return Y.events.groupchat({
           groupchat: from.bare,
           id: id
         })
@@ -177,7 +184,7 @@
       //
       if (type === 'unavailable') {
         return Y.events.presence({
-          from: from,
+          user: from.local,
           type: 'offline'
         });
       }
@@ -186,7 +193,7 @@
       //
       if (type !== 'unavailable') {
         return Y.events.presence({
-          from: from,
+          user: from.local,
           type: 'online'
         });
       }
