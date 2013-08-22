@@ -115,7 +115,7 @@ var Yuilop = {
     req.open(options.method || 'GET', options.url, true);
 
     if (options.auth === true) {
-      options.username = Y.username;
+      options.username = Y.jid.bare;
       options.password = Y.password; 
     }
 
