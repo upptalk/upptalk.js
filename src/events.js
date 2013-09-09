@@ -21,20 +21,22 @@
       if (type === 'error') {
         var event = {
           type: 'error',
-          message: id
+          id: id
         };
         if (type === 'groupchat') {
           event.groupchat = from.local;
-          if (jid.resource)
-            event.participant = from.resource;
+          event.participant = from.resource;
         }
-        else
+        else {
           event.user = from.local;
+        }
+        return Y.events.receipt(event)
       }
       //don't fire message event if the message was sent from this device
       var test = type === 'groupchat' ? from.local : from;
       if (Y.wasSentFromThisDevice(test, id, type))
         return
+      //
       //chatstate
       //
       if (type !== 'groupchat') {
