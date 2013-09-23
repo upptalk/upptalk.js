@@ -152,7 +152,7 @@ var Yuilop = {
   //connection//
   //////////////
   generateLoginBarcode: function(token) {
-    var data = document.location.protocol + '//' + document.location.host + '/barcode.xhml?token=' + token;
+    var data = document.location.protocol + '//' + document.location.host + '/barcode?token=' + token;
     var qr = new JSQR();
     var code = new qr.Code();
     code.encodeMode = code.ENCODE_MODE.BYTE;
@@ -187,7 +187,7 @@ var Yuilop = {
         callback();
     };
     conn.onFailure = function(err) {
-      callback(true)
+      callback(true);
     };
     conn.onStanza = function(stanza) {
       console.debug('stanza in:')
@@ -197,7 +197,14 @@ var Yuilop = {
     conn.onOut = function(stanza) {
       console.debug('stanza out:')
       console.debug(stanza.toString());
-    }
+    };
+    conn.onClose = function() {
+      if (Y.onDisconnected)
+        Y.onDisconnected();
+    };
+    conn.onError = function(e) {
+      console.log(e)
+    };
     conn.connect(this.jid, this.password);
 
     //JSON-RPC
@@ -844,7 +851,7 @@ var Yuilop = {
     var number = jid.local;
 
     var from = conn.jid.bare;
-    var to = number ? new JID(number + '@' + conf.domain) : Y.jid.bare;
+    var to = number ? new JID(number + '@' + Y.domain) : Y.jid.bare;
 
     var stanza = (
       '<iq type="get">' +
