@@ -175,6 +175,10 @@
     //presence
     //
     else if (name === 'presence') {
+      //ignore presence from own device
+      if (from.equals(Y.jid))
+        return;
+
       //
       //groupchat joined
       //
