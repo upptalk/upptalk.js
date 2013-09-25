@@ -30,7 +30,7 @@
         else {
           event.user = from.local;
         }
-        return Y.events.receipt(event)
+        return Y.event('receipt', event);
       }
       //don't fire message event if the message was sent from this device
       var test = type === 'groupchat' ? from.local : from;
@@ -44,7 +44,7 @@
         chatstates.forEach(function(chatstate) {
           var chatstateEl = stanza.getChild(chatstate, 'http://jabber.org/protocol/chatstates');
           if (chatstateEl) {
-            Y.events.chatstate({
+            Y.event('chatstate', {
               type: chatstate,
               user: from.local
             });
@@ -62,14 +62,17 @@
             type: receipt,
             id: childEl.attrs['id']
           };
-          if (type === 'groupchat') {
+                                   //WORKAROUND CORE-1533
+          if (type === 'groupchat' || (from.domain === Y.services['groupchat'])) {
             event.groupchat = from.local;
-            event.participant = from.resource;
+          }
+          else if (from.domain === Y.services['sms']) {
+            event.number = from.local;
           }
           else {
             event.user = from.local;
           }
-          Y.events.receipt(event);
+          Y.event('receipt', event);
         }
       });
       //
@@ -129,7 +132,7 @@
 
         var message = {
           id: id,
-          value: value
+          message: value
         };
 
         if (type === 'groupchat') {
@@ -166,7 +169,7 @@
         if (titleEl)
           message.title = titleEl.getText();
 
-        Y.events.message(message);
+        Y.event('message', message);
     }
     //
     //presence
@@ -176,16 +179,16 @@
       //groupchat joined
       //
       if (id && !type && stanza.getChild('x', 'http://jabber.org/protocol/muc#user')) {
-        return Y.events.groupchat({
+        return Y.event('groupchat', {
           groupchat: from.bare,
           id: id
-        })
+        });
       }
       //
       //user offline
       //
       if (type === 'unavailable') {
-        return Y.events.presence({
+        return Y.event('presence', {
           user: from.local,
           type: 'offline'
         });
@@ -194,7 +197,7 @@
       //user online
       //
       if (type !== 'unavailable') {
-        return Y.events.presence({
+        return Y.event('presence', {
           user: from.local,
           type: 'online'
         });

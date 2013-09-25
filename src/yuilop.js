@@ -37,14 +37,6 @@ var Yuilop = {
   socket: null,
   config: {},
   services: {},
-  events: {
-    receipt: function() {},
-    chatstate: function() {},
-    groupchat: function() {},
-    message: function() {},
-    presence: function() {},
-    newGroupChat: function() {}
-  },
   getJID: function() {
     if (arguments[0] instanceof JID)
       return arguments[0]
@@ -68,6 +60,13 @@ var Yuilop = {
         callback(stanza);
       }
     );
+  },
+  on: function(name, data) {
+    this.eventEmitter.on(name, data);
+  },
+  event: function(name, data) {
+    this.eventEmitter.emit('event', name, data);
+    this.eventEmitter.emit(name, data);
   },
   sendRPC: function(request, callback) {
     this.enchufe.send(request, callback)
@@ -141,17 +140,7 @@ var Yuilop = {
     this.username = jid.local;
     this.password = password;
   },
-  ////////////
-  //presence//
-  ////////////
-  showOnline: function() {
-    var stanza = new Stanza('<presence/>');
-    send(stanza);
-  },
-  //////////////
-  //connection//
-  //////////////
-  generateLoginBarcode: function(token) {
+  loginBarcode: function(token) {
     var data = document.location.protocol + '//' + document.location.host + '/barcode?token=' + token;
     var qr = new JSQR();
     var code = new qr.Code();
@@ -230,74 +219,8 @@ var Yuilop = {
     this.connection.connect(this.jid, this.password);
   },
   disconnect: function() {
-    var stanza = new Stanza('<presence type="unavailable"/>');
-    conn.send(stanza);
+    this.emit('presence', {type: 'offline'})
     conn.disconnect();
-  },
-  getLoginToken: function(callback) {
-    var options = {
-      method: 'GET',
-      url: 'https://' + services['login'] + '/token'
-    };
-    request(options, function (err, res) {
-      if (err)
-        return callback(true);
-
-      callback(null, res);
-    });
-  },
-  sendLoginToken: function(token, callback) {
-    var socket;
-
-    var onMessage = function(e) {
-      var message = JSON.parse(e.data);
-      var result = message.result;
-      if (!result)
-        callback(message);
-      else
-        callback(null, result);
-
-      close();
-    };
-    var close = function() {
-      socket.removeEventListener('open', onOpen);
-      socket.removeEventListener('close', onClose);
-      socket.removeEventListener('error', onError);
-      socket.removeEventListener('message', onMessage);
-      socket.close();
-    };
-    var onClose = function() {
-      socket.removeEventListener('open', onOpen);
-      socket.removeEventListener('close', onClose);
-      socket.removeEventListener('error', onError);
-      socket.removeEventListener('message', onMessage);
-      DEBUG('login tunnel closed');
-      open();
-    }
-    var onOpen = function() {
-      DEBUG('login tunnel opened');
-      var request = {
-        "jsonrpc": "2.0",
-        "method": "token",
-        "params": {
-          "value": token,
-        },
-        "id": "1"
-      };
-      this.send(JSON.stringify(request));
-    };
-    var onError = function(e) {
-      socket.removeEventListener('close', onClose);
-      callback(true);
-    };
-    var open = function() {
-      socket = new WebSocket('wss://' + services['happy']);
-      socket.addEventListener('open', onOpen);
-      socket.addEventListener('close', onClose);
-      socket.addEventListener('error', onError);
-      socket.addEventListener('message', onMessage);
-    };
-    open();
   },
   /////////////
   //Groupchat//
@@ -337,42 +260,6 @@ var Yuilop = {
   //   //FIXME, listen for message receipt
   //   callback();
   // },
-  getGroupchatParticipants: function(to, callback) {
-    var jid = this.getJID(to, services['groupchat']);
-    var stanza = new Stanza(
-      '<iq type="get">' +
-        '<query xmlns="http://jabber.org/protocol/muc#admin"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(true);
-
-      var queryEl = res.getChild('query');
-      var itemsEl = queryEl.getChildren('item');
-      var participants = [];
-      for (var i = 0, length = itemsEl.length; i < length; i++) {
-        participants.push({
-          user: new JID(itemsEl[i].attrs.jid).local,
-          name: itemsEl[i].attrs.nick || this.jid.local,
-          affiliation: itemsEl[i].attrs.affiliation,
-          role: itemsEl[i].attrs.role,
-        });
-      }
-
-      callback(null, participants)
-    });
-  },
-  leaveGroupchat: function(to, callback) {
-    var jid = this.getJID(to, services['groupchat']);
-    console.log(jid)
-    var stanza = new Stanza(
-      '<presence type="unavailable"/>'
-    );
-    send(jid, stanza);
-    //FIXME, listen for presence event to call callback
-    callback();
-  },
   // inviteToGroupchat: function(groupchat, user) {
   //   var stanza = (
   //     '<message to="' + groupchat + '">' +
@@ -401,132 +288,51 @@ var Yuilop = {
   //     callback();
   //   });
   // },
-  getGroupchats: function(callback) {
-    var jid = this.getJID(services['groupchat']);
-    var stanza = (
-      '<iq type="get">' +
-        '<query xmlns="http://jabber.org/protocol/disco#items"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, result) {
-      if (err)
-        return callback(true);
-
-      var queryEl = result.getChild('query');
-      var itemsEl = queryEl.getChildren('item');
-      var groupchats = [];
-      for (var i = 0, length = itemsEl.length; i < length; i++) {
-        groupchats.push({
-          id: new JID(itemsEl[i].attrs.jid).local,
-          name: itemsEl[i].attrs.name,
-        });
-      }
-      callback(null, groupchats);
-    });
-  },
   ///////////
   //Profile//
   ///////////
-  getProfile: function(callback) {
-    var jid = this.getJID(services['user-service']);
-    var stanza = (
-      '<iq type="get">' +
-        '<profile xmlns="com.yuilop.profile"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(true);
+  // getProfile: function(callback) {
+  //   var jid = this.getJID(services['user-service']);
+  //   var stanza = (
+  //     '<iq type="get">' +
+  //       '<profile xmlns="com.yuilop.profile"/>' +
+  //     '</iq>'
+  //   );
+  //   send(jid, stanza, function(err, res) {
+  //     if (err)
+  //       return callback(true);
 
-      var nicknameEl = res.getChild('profile').getChild('nickname');
-      var nickname = nicknameEl.text();
+  //     var nicknameEl = res.getChild('profile').getChild('nickname');
+  //     var nickname = nicknameEl.text();
 
-      var profile = {
-        nickname: nickname ? nickname : null
-      };
+  //     var profile = {
+  //       nickname: nickname ? nickname : null
+  //     };
 
-      callback(null, profile)
-    });
-  },
-  setProfile: function(profile, callback) {
-    var jid = this.getJID(services['user-service']);
-    var stanza = (
-      '<iq type="set">' +
-        '<profile xmlns="com.yuilop.profile">' +
-          '<nickname>' +
-            profile.nickname +
-          '</nickname>' +
-        '</profile>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(true);
+  //     callback(null, profile)
+  //   });
+  // },
+  // setProfile: function(profile, callback) {
+  //   var jid = this.getJID(services['user-service']);
+  //   var stanza = (
+  //     '<iq type="set">' +
+  //       '<profile xmlns="com.yuilop.profile">' +
+  //         '<nickname>' +
+  //           profile.nickname +
+  //         '</nickname>' +
+  //       '</profile>' +
+  //     '</iq>'
+  //   );
+  //   send(jid, stanza, function(err, res) {
+  //     if (err)
+  //       return callback(true);
 
-      callback();
-    });
-  },
+  //     callback();
+  //   });
+  // },
   ////////
   //Chat//
   ////////
-  sendReceipt: function(to, id, type, groupchat) {
-    var domain = groupchat === true ? services['groupchat'] : Y.domain;
-    var jid = this.getJID(to, domain);
-    var messageType = groupchat ? 'groupchat' : 'chat';
-    var stanza = (
-       '<message type="' + messageType + '">' +
-         '<' + type + ' xmlns="urn:xmpp:receipts" id="' + id + '"/>' +
-       '</message>'
-     );
-
-    send(jid, stanza);
-  },
-  sendChatState: function(to, state) {
-    var jid = this.getJID(to, Y.domain);
-    var stanza = (
-      '<message to="' + jid + '" type="chat">' +
-        '<' + state + ' xmlns="http://jabber.org/protocol/chatstates"/>' +
-      '</message>'
-    );
-    send(stanza);
-  },
-  buildMessageStanza: function(message) {
-    var id = L.id();
-    var value = message.value;
-    var payload;
-    if (typeof value === 'string')
-      payload = this.getStanzaPayloadForTextMessage(value);
-    else if (value.multimedia === 'location')
-      payload = this.getStanzaPayloadForLocationMessage(value);
-    else if (value.multimedia === 'file')
-      payload = this.getStanzaPayloadForFileMessage(value);
-
-    var stanza = new Stanza(
-      '<message id="' + id + '">' +
-        payload +
-        '<request xmlns="urn:xmpp:receipts"/>' +
-        '<nick xmlns="http://jabber.org/protocol/nick">' + Y.username + '</nick>' +
-      '</message>'
-    );
-    return stanza;
-  },
-  sendMessage: function(to, message, type) {
-    var domain = type === 'user' ? Y.domain : services[type];
-    var jid = this.getJID(to, domain);
-
-    var stanza = this.buildMessageStanza(message);
-    stanza.attrs.type = type === 'groupchat' ? type : 'chat';
-    var id = stanza.attrs.id;
-
-    send(jid, stanza);
-    //don't fire message event if the message was sent from this device
-    if (type === 'groupchat') {
-      var hackId = jid.local + '/' + id;
-      this.sentFromThisDeviceHack[hackId] = true;
-    }
-
-    return id;
-  },
   wasSentFromThisDevice: function(jid, messageid, type) {
     if (type === 'groupchat') {
       var hackId = jid + '/' + messageid;
@@ -568,43 +374,6 @@ var Yuilop = {
   //   send(jid, stanza);
   //   return stanza.attrs.id;
   // },
-  getStanzaPayloadForTextMessage: function(value) {
-    var payload = (
-      '<body>' + unesc(value) + '</body>'
-    );
-    return payload;
-  },
-  getStanzaPayloadForLocationMessage: function(value) {
-    var escapedURL = esc(value.url);
-    var payload = (
-      '<body>' + escapedURL + '</body>' +
-      '<multimedia xmlns="com.yuilop.multimedia">' +
-        '<location url="' + escapedURL + '" thumbnail="' + esc(value.thumbnail.url) + '"/>' +
-      '</multimedia>' +
-      '<geoloc xmlns="http://jabber.org/protocol/geoloc">' +
-        '<lat>' + value.latitude + '</lat>' +
-        '<lon>' + value.longitude + '</lon>' +
-      '</geoloc>'
-    );
-    console.log(payload);
-    return payload;
-  },
-  getStanzaPayloadForFileMessage: function(value) {
-    var escapedURL = esc(value.url);
-    var payload = (
-      '<body>' + escapedURL + '</body>' +
-      '<multimedia xmlns="com.yuilop.multimedia">' +
-        '<file ' +
-          'name="' + value.name + '" ' +
-          'size="' + value.size + '" ' +
-          'url="' + escapedURL + '" ' +
-          (value.type ? 'type="' + value.type +  '" ' : ' ') +
-          (value.thumbnail && value.thumbnail.url ? 'thumbnail="' + esc(value.thumbnail.url) +  '"' : '') +
-        '/>' +
-      '</multimedia>'
-    );
-    return payload;
-  },
   /////////
   //Cloud//
   /////////
@@ -641,56 +410,7 @@ var Yuilop = {
   ////////////
   //Contacts//
   ////////////
-  getPhones: function(to, callback) {
-    var jid = this.getJID(to, services['user']);
-    var stanza = (
-      '<iq type="get">' +
-        '<contacts xmlns="com.yuilop.contact"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, stanza) {
-      if (err)
-        return callback(err);
 
-      var phones = {};
-      var contactsEl = stanza.getChild('contacts');
-      if (contactsEl) {
-        var phoneEls = contactsEl.getChildren('phone');
-        for (var i = 0, length = phoneEls.length; i < length; i++) {
-          var phoneEl = phoneEls[i];
-          var number = phoneEl.attrs['number'];
-          var type = phoneEl.attrs['type'];
-          var phone = number;
-          phones[type] = phone;
-        }
-      }
-      callback(null, phones);
-    });
-  },
-  getLastActivity: function(to, callback) {
-    var jid = this.getJID(to, Y.domain);
-    var stanza = new Stanza(
-      '<iq type="get">' +
-        '<query xmlns="jabber:iq:last"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(true);
-
-      var queryEl = res.getChild('query', 'jabber:iq:last');
-      if (!queryEl)
-        return callback();
-
-      var seconds = queryEl.attrs['seconds'];
-      if (!seconds)
-        return callback();
-
-      callback(null, seconds);
-      // var date = new Date(parseInt(seconds));
-      // callback(null, date);
-    });
-  },
   // allowSubscription: function(to) {
   //   var stanza = (
   //     '<presence to="' + to + '" type="subscribed"/>'
@@ -761,137 +481,22 @@ var Yuilop = {
   //     aCallback(null, contacts, ver);
   //   });
   // },
-  getStorage: function(callback) {
-    var req = {
-      'method': 'get',
-      'params': {
-        'path': '/'
-      }
-    };
-    this.sendRPC(req, function(res) {
-      callback(res.error, res.result);
-    })
-  },
-  //////////////
-  //Multimedia//
-  //////////////
-  uploadFile: function(file, callback, onProgress) {
-    if (!(file instanceof Blob) && !(file instanceof File))
-      return callback(new Error('Wrong data type'));
-
-    this.request({
-      method: 'POST',
-      url: 'https://' + services['happy'] + '/media',
-      auth: true,
-      post: file
-    }, function(err, result) {
-      if (err)
-        return callback(err);
-
-      callback(null, JSON.parse(result));
-    }, onProgress);
-  },
-  getAvatar: function(device, contact, callback) {
-    var options = {
-      auth: true,
-      url: 'https://' + services['happy'] + '/storage/devices/' + device + '/contacts/' + contact + '/avatar',
-      //workaround safari, no support for responseType blob :/
-      responseType: 'arraybuffer'
-    };
-    
-    this.request(options, function(err, result) {
-      if (err)
-        return callback(err);
-
-      var contentType = this.getResponseHeader('Content-Type');
-      var blob = new Blob([result], {type: contentType});
-
-      callback(null, blob);
-    })
-  },
-  //////////
-  //Energy//
-  //////////
-  getEnergyLeft: function(callback) {
-    var jid = this.getJID(services['energy']);
-
-    var stanza = (
-      '<iq type="get">' +
-        '<energy xmlns="com.yuilop.energy"/>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(err);
-
-      var energyEl = res.getChild('energy');
-      if (!energyEl)
-        return callback(res);
-      var energy = energyEl.attrs['energy'];
-      if (!energy)
-        return callback(res);
-
-      callback(null, energy);
-    });
-  },
-  getEnergyCosts: function() {
-    var callback;
-    var to;
-
-    if (typeof arguments[0] === 'function') {
-      callback = arguments[0];
-      to = conn.jid.local;
-    }
-    else {
-      callback = arguments[1];
-      to = arguments[0];
-    }
-
-    var jid = this.getJID(to, services['energy']);
-    var number = jid.local;
-
-    var from = conn.jid.bare;
-    var to = number ? new JID(number + '@' + Y.domain) : Y.jid.bare;
-
-    var stanza = (
-      '<iq type="get">' +
-        '<energy xmlns="com.yuilop.energy#remaining"  from="' + from + '" to="' + to + '">' +
-          '<voice/>' +
-          '<sms/>' +
-        '</energy>' +
-      '</iq>'
-    );
-    send(jid, stanza, function(err, res) {
-      if (err)
-        return callback(true);
-
-      var energyEl = res.getChild('energy');
-      if (!energyEl)
-        return callback(true);
-
-      var voiceEl = energyEl.getChild('voice');
-      var smsEl = energyEl.getChild('sms');
-
-      var remaining = {};
-      if (voiceEl.attr('status') === 'allowed') {
-        remaining.voice = voiceEl.attr('maxseconds');
-      }
-      else {
-        remaining.voice = -2;
-      }
-      if (smsEl.attr('status') === 'allowed') {
-        remaining.sms = smsEl.attr('maxamount') >= 999999 ? -1 : smsEl.attr('maxamount');
-      }
-      else {
-        remaining.sms = -2;
-      }
-
-      callback(null, remaining);
-    });
-  },
 };
 
+Yuilop.eventEmitter = new EventEmitter();
+
+Yuilop.emit = function(name, data, callback) {
+  this.eventEmitter.emit('emit', name, data);
+  var emitter = this.emitters[name];
+  if (!emitter)
+    return;
+
+  return emitter.call(this, data, callback);
+};
+Yuilop.emitters = {};
+
 Y = Yuilop;
+Y.Stanza = Stanza;
 conf = Y.config;
 send = Y.send;
 username = Y.username;

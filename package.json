@@ -1,22 +1,21 @@
 {
   "name": "yuilop.js",
   "description": "yuilop client JavaScript library",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/yuilop/yuilop.js",
   "bugs": {
     "url": "https://github.com/yuilop/yuilop.js/issues",
     "email": "sonny@yuilop.com"
   },
   "repository": {
-    "type" : "git",
-    "url" : "git://github.com/yuilop/yuilop.js.git"
+    "type": "git",
+    "url": "git://github.com/yuilop/yuilop.js.git"
   },
   "scripts": {
     "install": "./node_modules/.bin/bower install",
     "build": "./node_modules/.bin/grunt build"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "mocha": "~1.12.0",
     "bower": "~0.10.0",
@@ -28,5 +27,6 @@
     "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-jshint": "~0.4.3",
     "grunt-jsvalidate": "~0.2.1"
-  }
+  },
+  "author": "Sonny Piers <sonny@yuilop.com>",
 }
