@@ -489,13 +489,19 @@ var Yuilop = {
 
 Yuilop.eventEmitter = new EventEmitter();
 
-Yuilop.emit = function(name, data, callback) {
-  this.eventEmitter.emit('emit', name, data);
-  var emitter = this.emitters[name];
+Yuilop.emit = function() {
+  var args = Array.prototype.slice.call(arguments)
+  args.shift('emit');
+
+  this.eventEmitter.emit.apply(this.eventEmitter, args);
+
+  var emitter = this.emitters[arguments[0]];
   if (!emitter)
     return;
 
-  return emitter.call(this, data, callback);
+  args.unshift();
+
+  return emitter.apply(this, args);
 };
 Yuilop.emitters = {};
 
