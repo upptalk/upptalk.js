@@ -179,8 +179,8 @@
         callback(null, energy);
       });
     },
-    phones: function(data, callback) {
-      var jid = this.getJID(data.user, services['user']);
+    phonenumbers: function(number, callback) {
+      var jid = this.getJID(number, services['user']);
       var stanza = (
         '<iq type="get">' +
           '<contacts xmlns="com.yuilop.contact"/>' +

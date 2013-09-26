@@ -44,6 +44,7 @@
         chatstates.forEach(function(chatstate) {
           var chatstateEl = stanza.getChild(chatstate, 'http://jabber.org/protocol/chatstates');
           if (chatstateEl) {
+            chatstate = chatstate === 'composing' ? 'composing' : 'paused';
             Y.event('chatstate', {
               type: chatstate,
               user: from.local

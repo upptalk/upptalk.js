@@ -1,7 +1,7 @@
 {
   "name": "yuilop.js",
   "description": "yuilop client JavaScript library",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://github.com/yuilop/yuilop.js",
   "bugs": {
     "url": "https://github.com/yuilop/yuilop.js/issues",
@@ -24,9 +24,6 @@
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-contrib-clean": "~0.4.0",
     "grunt-contrib-concat": "~0.2.0",
-    "grunt-contrib-copy": "~0.4.1",
-    "grunt-contrib-jshint": "~0.4.3",
-    "grunt-jsvalidate": "~0.2.1"
   },
   "author": "Sonny Piers <sonny@yuilop.com>",
 }
