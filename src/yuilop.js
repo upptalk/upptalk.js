@@ -3,8 +3,12 @@
 'use strict';
 
 var DEBUG = function(message) {
-  console.log('yuilop.js ' + message)
+  if (Yuilop.debug)
+    console.debug(message);
 };
+var ERROR = function(e) {
+  console.error(e);
+}
 
 var L = window.Lightstring;
 var JID = L.JID;
@@ -179,20 +183,20 @@ var Yuilop = {
       callback(true);
     };
     conn.onStanza = function(stanza) {
-      console.debug('stanza in:')
-      console.debug(stanza.toString());
+      DEBUG('stanza in:')
+      DEBUG(stanza.toString());
       Y.routeStanza(stanza);
     };
     conn.onOut = function(stanza) {
-      console.debug('stanza out:')
-      console.debug(stanza.toString());
+      DEBUG('stanza out:')
+      DEBUG(stanza.toString());
     };
     conn.onClose = function() {
       if (Y.onDisconnected)
         Y.onDisconnected();
     };
     conn.onError = function(e) {
-      console.log(e)
+      ERROR(e);
     };
     conn.connect(this.jid, this.password);
 
