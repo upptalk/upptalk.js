@@ -31,6 +31,17 @@ var cache; // Yuilop.cache
 //json-rpc
 var callbacks = {};
 
+var lastActivity;
+
+var lastActivity = null;
+var timeout = null;
+var pingInterval = 10000;
+var pongTimeout = 2000;
+var pongTimeoutFun = null;
+var reconnectInterval = 2000;
+
+var connecting = false;
+
 var Yuilop = {
   JID: JID,
   cache: {},
@@ -164,25 +175,49 @@ var Yuilop = {
     matrix.draw(canvas, 0, 0);
     return canvas;
   },
+  newActivity: function(timestamp) {
+    if (!lastActivity || timeout || timestamp - lastActivity < pingInterval) {
+      clearTimeout(timeout);
+      timeout = setTimeout((function() {
+        var received;
+        pongTimeoutFun = setTimeout((function() {
+          // this.connection.transport.socket.close();
+          clearTimeout(timeout);
+          timeout = null;
+          lastActivity = null;
+          conn.onClose();
+        }).bind(this), pongTimeout);
+        this.emit('ping', function() {
+          clearTimeout(pongTimeoutFun);
+        });
+      }).bind(this), pingInterval);
+    }
+    lastActivity = timestamp;
+  },
   connect: function(callback) {
     var done = 0;
+
+    if (connecting)
+      return;
+    else
+      connecting = true;
 
     //XMPP
     this.jid.resource = 'Webx1.0xx' + Lightstring.id() + 'x';
     this.connection = new L.Connection('wss://' + services['proxy']);
     conn = this.connection;
-    conn.onOpen = function() {
-      DEBUG('XMPP open');
-    };
+    var that = this;
     conn.onConnected = function() {
+      that.newActivity(Date.now());
       DEBUG('XMPP authenticated');
       if (callback && ++done === 2)
-        callback();
+        callback()
     };
     conn.onFailure = function(err) {
       callback(true);
     };
     conn.onStanza = function(stanza) {
+      that.newActivity(Date.now());
       DEBUG('stanza in:')
       DEBUG(stanza.toString());
       Y.routeStanza(stanza);
@@ -192,6 +227,11 @@ var Yuilop = {
       DEBUG(stanza.toString());
     };
     conn.onClose = function() {
+      clearTimeout(timeout);
+      clearTimeout(pongTimeoutFun);
+      timeout = null;
+      lastActivity = null;
+      connecting = false;
       if (Y.onDisconnected)
         Y.onDisconnected();
     };
@@ -214,7 +254,7 @@ var Yuilop = {
 
         DEBUG('JSON-RPC authenticated')
         if (callback && ++done === 2)
-          callback()
+          callback();
       });
     }).bind(this));
     this.enchufe = enchufe;
@@ -223,7 +263,7 @@ var Yuilop = {
     this.connection.connect(this.jid, this.password);
   },
   disconnect: function() {
-    this.emit('presence', {type: 'offline'})
+    this.emit('presence', {type: 'offline'});
     conn.disconnect();
   },
   /////////////

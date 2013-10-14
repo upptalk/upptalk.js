@@ -25,6 +25,14 @@
       if (callback)
       	callback();
   	},
+    ping: function(callback) {
+      var stanza = new Stanza(
+        '<iq to="' + Y.domain + '" type="get">' +
+          '<ping xmlns="urn:xmpp:ping"/>' +
+        '</iq>'
+      );
+      send(stanza, callback);
+    },
   	receipt: function(data) {
   		var jid;
   		var stanzaType;
