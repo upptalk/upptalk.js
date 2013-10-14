@@ -2,10 +2,10 @@
 
   'use strict';
 
-  var debug = true;
+  // var debug = t;
 
   var DEBUG = function(message) {
-    if (debug)
+    if (Y.debug)
       console.debug(message);
   };
   var ERROR = function(e) {
