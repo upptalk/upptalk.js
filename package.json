@@ -2,10 +2,10 @@
   "name": "yuilop.js",
   "description": "yuilop client JavaScript library",
   "version": "0.3.3",
+  "author": "Sonny Piers <sonny@yuilop.com>",
   "homepage": "https://github.com/yuilop/yuilop.js",
   "bugs": {
-    "url": "https://github.com/yuilop/yuilop.js/issues",
-    "email": "sonny@yuilop.com"
+    "url": "https://github.com/yuilop/yuilop.js/issues"
   },
   "repository": {
     "type": "git",
@@ -15,7 +15,6 @@
     "install": "./node_modules/.bin/bower install",
     "build": "./node_modules/.bin/grunt build"
   },
-  "dependencies": {},
   "devDependencies": {
     "mocha": "~1.12.0",
     "bower": "~0.10.0",
@@ -23,7 +22,10 @@
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-contrib-clean": "~0.4.0",
-    "grunt-contrib-concat": "~0.2.0",
+    "grunt-contrib-concat": "~0.2.0"
   },
-  "author": "Sonny Piers <sonny@yuilop.com>",
+  "dependencies": {
+    "node-xmpp": "~0.7.1",
+    "ws": "~0.4.31"
+  }
 }
