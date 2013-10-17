@@ -1,6 +1,6 @@
 (function(Y) {
 
-	var Stanza = Y.Stanza;
+  var Stanza = Y.Stanza;
   var services = Y.services;
   var send = Y.send;
   var getJID = Y.getJID;
@@ -9,22 +9,22 @@
   var esc = Lightstring.escape;
   var request = Y.request;
 
-	Y.emitters = {
-  	presence: function(data, callback) {
+  Y.emitters = {
+    presence: function(data, callback) {
       var stanza = new Stanza('<presence/>');
 
       if (data) {
-      	if (data.type !== 'online')
-      		stanza.attrs.type = 'unavailable';
-      	if (data.groupchat) {
-      		stanza.attrs.to = getJID(to, services['groupchat']);
-      	}
+        if (data.type !== 'online')
+          stanza.attrs.type = 'unavailable';
+        if (data.groupchat) {
+          stanza.attrs.to = getJID(to, services['groupchat']);
+        }
       }
       send(stanza);
       //FIXME, listen for groupchat presence event to call callback
       if (callback)
-      	callback();
-  	},
+        callback();
+    },
     ping: function(callback) {
       var stanza = new Stanza(
         '<iq to="' + Y.domain + '" type="get">' +
@@ -33,17 +33,17 @@
       );
       send(stanza, callback);
     },
-  	receipt: function(data) {
-  		var jid;
-  		var stanzaType;
-  		if (data.groupchat) {
-  			jid = getJID(data.groupchat,	services['groupchat']);
-  			stanzaType = 'groupchat';
-  		}
-  		else if (data.user) {
-  			jid = getJID(data.user, Y.domain);
-  			stanzaType = 'chat';
-  		}
+    receipt: function(data) {
+      var jid;
+      var stanzaType;
+      if (data.groupchat) {
+        jid = getJID(data.groupchat,  services['groupchat']);
+        stanzaType = 'groupchat';
+      }
+      else if (data.user) {
+        jid = getJID(data.user, Y.domain);
+        stanzaType = 'chat';
+      }
 
       var stanza = (
         '<message type="' + stanzaType + '" to="' + jid + '">' +
@@ -52,7 +52,7 @@
        );
 
       send(stanza);
-  	},
+    },
     chatstate: function(data) {
       var jid = getJID(data.user, Y.domain);
       var stanza = (
@@ -62,7 +62,7 @@
       );
       send(stanza);
     },
-  	lastactivity: function(data, callback) {
+    lastactivity: function(data, callback) {
       var jid = getJID(data.user, Y.domain);
       var stanza = new Stanza(
         '<iq type="get">' +
@@ -86,7 +86,7 @@
         // var date = new Date(parseInt(seconds));
         // callback(null, date);
       });
-	  },
+    },
     participants: function(data, callback) {
       var jid = getJID(data.groupchat, services['groupchat']);
       var stanza = new Stanza(
@@ -392,7 +392,7 @@
         callback(null, JSON.parse(result));
       }, onProgress);
     }
-	};
+  };
 
   //
   //message helpers
