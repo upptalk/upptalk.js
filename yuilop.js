@@ -642,6 +642,9 @@ var methods = {
 
     this.sendStanza(notification);
   },
+  send: function(message) {
+    this.sendStanza(message);
+  },
   sendStanza: function(stanza) {
     var message = serialize(stanza);
     if (message instanceof Error)
@@ -904,19 +907,18 @@ for (var i in methods)
     conducto = window.conducto;
   }
   else {
-    conducto = require('../conducto');
+    conducto = require('../node_modules/conducto');
   }
-  // var Y = conducto;
 
 
-  var mo = function(url) {
+  var exports = function(url) {
     return new conducto.Client(url);
-  }
+  };
 
   if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
-    module.exports = mo;
+    module.exports = exports;
   else
-    window.Y = mo;
+    window.Y = exports;
 
 
 })();
