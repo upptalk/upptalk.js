@@ -29,7 +29,7 @@ var y = new Y(url);
 ### open
 Open the connection.
 ```javascript
-y.open(ur);
+y.open(url);
 ```
 
 ### emit
@@ -37,8 +37,8 @@ Emit an event
 
 If an answer from the server is expected:
 ```javascript
-y.emit('event', payload, function() {
-
+y.emit('event', payload, function(err, res) {
+  console.log(err || res);
 });
 ```
 Otherwise
@@ -52,15 +52,36 @@ Listen for a event.
 y.on('echo', function(payload, res, next) {
   var err;
   var ok;
-	if (typeof payload === undefined)
+  if (typeof payload === 'undefined')
     err = 'Payload must be set to be echoed';
-	else
-  	ok = payload;
+  else
+    ok = payload;
 
   if (res) //server expects an answer
     res(err, ok);
 
   next();
+});
+```
+
+### use
+use is similar to on but catch all remote events.
+```javascript
+y.use(function(req, res, next) {
+  if (req.method !== 'echo')
+    return next();
+
+  var err;
+  var ok;
+  if (typeof req.payload === 'undefined')
+    err = 'Payload must be set to be echoed';
+  else
+    ok = payload;
+
+  if (res) //server expects an answer
+    res(err, ok);
+
+  //next() we don't call it so that other listeners aren't called
 });
 ```
 
