@@ -34,9 +34,10 @@ y.open(ur);
 
 ### emit
 Emit an event
+
 If an answer from the server is expected:
 ```javascript
-y.emit('event', payload, function() {
+y.emit('event', payload, function() {
 
 });
 ```
@@ -68,7 +69,7 @@ y.on('echo', function(payload, res, next) {
 ### open
 Emitted when the connection is open.
 ```javascript
-y.on('open', function() {
+y.on('open', function() {
   console.log('open');
 });
 ```
@@ -76,16 +77,16 @@ y.on('open', function() {
 ### message
 Emitted for every incoming message.
 ```javascript
-y.on('message', function(message) {
+y.on('message', function(message) {
   console.log('message in:');
   console.log(message);
 });
 ```
 
-### message
+### sent
 Emitted for every sent message.
 ```javascript
-y.on('send', function(message) {
+y.on('send', function(message) {
   console.log('message out:');
   console.log(message);
 });
@@ -94,7 +95,8 @@ y.on('send', function(message) {
 ### error
 Emitted when a connection error occurs.
 ```javascript
-y.on('error', function(err) {
+y.on('error', function(err) {
+  console.log('ERROR:')
   console.log(err);
 });
 ```
@@ -102,7 +104,7 @@ y.on('error', function(err) {
 ### close
 Emitted when the connection gets closed.
 ```javascript
-y.on('close', function() {
+y.on('close', function() {
   console.log('close');
 });
 ```
@@ -147,7 +149,7 @@ Y.emit('remaining', [number,] function(err, energy) {
 ### Receipts
 ##### Listen receipt
 ```javascript
-Y.on('receipt', function(receipt) {
+Y.on('receipt', function(receipt) {
   //receipt.id is the message id concerned
   //receipt.type can be 'sent' or 'received' or 'read' or 'error'
 });
@@ -230,11 +232,11 @@ Y.emit('participants', {groupchat: id}, function(err, participants) {
 ```javascript
 Y.emit('upload', file,
   //when request completes
-  function(err, result) {
+  function(err, result) {
   },
   //when progress
   function(progress) {
-    /progress is a % number
+    //progress is a % number
   }
 );
 ```
@@ -251,16 +253,12 @@ Y.emit('message', message);
 ### Storage
 ##### Listen storage FIXME
 ```javascript
-Y.on('storage', function(storage) {
+Y.on('storage', function(storage) {
 })
 ```
 ##### Get storage
 ```javascript
-Y.emit('storage', function(err, storage) {
+Y.emit('storage', function(err, storage) {
 
 });
-```
-
-```javascript
-
 ```
