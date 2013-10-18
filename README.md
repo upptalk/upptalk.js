@@ -1,9 +1,118 @@
 # yuilop.js
 
 ## Description
-yuilop.js is a javascript library to consume, use and abuse yuilop APIs.
-# API
-## Presence
+yuilop.js is a JavaScript library to consume, use and abuse yuilop APIs.
+
+## Install
+```shell
+npm install https://github.com/yuilop/yuilop.js
+```
+
+## Include
+###Node.JS
+```javascript
+var Y = require('yuilop.js');
+```
+###Browser
+```xml
+<script src="node_modules/yuilop.js/yuilop.js"></script>
+```
+
+## API
+
+### Init
+Create a yuilop.js client instance.
+```javascript
+var y = new Y(url);
+```
+
+### open
+Open the connection.
+```javascript
+y.open(ur);
+```
+
+### emit
+Emit an event
+If an answer from the server is expected:
+```javascript
+y.emit('event', payload, function() {
+
+});
+```
+Otherwise
+```javascript
+y.emit('event', payload);
+```
+
+### on
+Listen for a event.
+```javascript
+y.on('echo', function(payload, res, next) {
+  var err;
+  var ok;
+	if (typeof payload === undefined)
+    err = 'Payload must be set to be echoed';
+	else
+  	ok = payload;
+
+  if (res) //server expects an answer
+    res(err, ok);
+
+  next();
+});
+```
+
+## Events - local
+
+### open
+Emitted when the connection is open.
+```javascript
+y.on('open', function() {
+  console.log('open');
+});
+```
+
+### message
+Emitted for every incoming message.
+```javascript
+y.on('message', function(message) {
+  console.log('message in:');
+  console.log(message);
+});
+```
+
+### message
+Emitted for every sent message.
+```javascript
+y.on('send', function(message) {
+  console.log('message out:');
+  console.log(message);
+});
+```
+
+### error
+Emitted when a connection error occurs.
+```javascript
+y.on('error', function(err) {
+  console.log(err);
+});
+```
+
+### close
+Emitted when the connection gets closed.
+```javascript
+y.on('close', function() {
+  console.log('close');
+});
+```
+
+
+
+
+## Events - remote
+
+### Presence
 ##### Listen presence
 ```javascript
 Y.on('presence', function(presence) {
@@ -19,7 +128,7 @@ var presence = {
 //if data is omited, {type: 'online'} is assumed.
 Y.emit('presence'[, data]);
 ```
-## Energy
+### Energy
 ##### Get energy left
 ```javascript
 Y.emit('energy', function(err, energy) {
@@ -35,7 +144,7 @@ Y.emit('remaining', [number,] function(err, energy) {
   //both of them are a number or 'unlimited'
 });
 ```
-## Receipts
+### Receipts
 ##### Listen receipt
 ```javascript
 Y.on('receipt', function(receipt) {
@@ -51,7 +160,7 @@ var receipt = {
 }
 Y.emit('receipt', receipt);
 ```
-## Chatstate
+### Chatstate
 ##### Listen chatstate
 ```javascript
 Y.on('chatstate', function(chatstate) {
@@ -66,7 +175,7 @@ var chatstate = {
 }
 Y.emit('chatstate', chatstate);
 ```
-## Last activity
+### Last activity
 ##### Get last activity
 ```javascript
 var lastactivity = {
@@ -76,7 +185,7 @@ Y.emit('lastactivity', lastactivity, function(err, lastActivity) {
   //lastActivity is a number, in seconds of user's last activity
 });
 ```
-## Phone numbers
+### Phone numbers
 ##### Get associated phone numbers for a number
 ```javascript
 //Number must be a E164 formated phone number
@@ -88,7 +197,7 @@ Y.emit('phonenumbers', number, function(err, phonenumbers) {
   //if nor real or yuilop is present, it means the number isn't registed
 });
 ```
-## Groupchats
+### Groupchats
 ##### Listen groupchat FIXME
 A groupchat event is received when the user join a groupchat
 ```javascript
@@ -116,7 +225,7 @@ Y.emit('participants', {groupchat: id}, function(err, participants) {
   }
 });
 ```
-## Message
+### Message
 ##### Upload a file
 ```javascript
 Y.emit('upload', file,
@@ -139,7 +248,7 @@ Y.on('message', function(message) {
 ```javascript
 Y.emit('message', message);
 ```
-## Storage
+### Storage
 ##### Listen storage FIXME
 ```javascript
 Y.on('storage', function(storage) {

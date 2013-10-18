@@ -1,6 +1,0 @@
-{
-  "name": "yuilop.js",
-  "dependencies": {
-    "lightstring": "git@github.com:sonnyp/lightstring.git#v0.1.0"
-  }
-}

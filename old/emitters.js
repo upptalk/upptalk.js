@@ -1,6 +1,6 @@
 (function(Y) {
 
-	var Stanza = Y.Stanza;
+  var Stanza = Y.Stanza;
   var services = Y.services;
   var send = Y.send;
   var getJID = Y.getJID;
@@ -9,28 +9,8 @@
   var esc = Lightstring.escape;
   var request = Y.request;
 
-	Y.emitters = {
-    ping: function(callback) {
-      this.request('ping', function(res) {
-        callback(res.error, res.result);
-      });
-    },
-    receipt: function(payload) {
-      this.notify('receipt', payload);
-    },
-    chatstate: function(payload) {
-      this.notify('chatstate', payload);
-    },
-    lastActivity: function(payload, callback) {
-      this.request('lastActivity', payload, function(res) {
-        callback(res.error, res.result);
-      });
-    },
-    participants: function(payload, callback) {
-      this.request('participants', payload, function(res) {
-        callback(res.error, res.result);
-      });
-    },
+
+  var emitter
     groupchats: function(callback) {
       this.request('groupchats', function(res) {
         callback(res.error, res.result);
@@ -178,7 +158,7 @@
         callback(null, JSON.parse(result));
       }, onProgress);
     }
-	};
+  };
 
 
 })(Yuilop);

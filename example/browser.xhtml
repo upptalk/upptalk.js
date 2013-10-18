@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>yuilop.js browser example</title>
+    <meta charset="UTF-8"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+
+    <!-- <link type="text/css" rel="stylesheet" href="/resources/modules/login/login.css"/> -->
+    <script type="application/javascript" src="../yuilop.js"/>
+
+    <script>
+      var LOG = function(header, what) {
+        console.log('');
+        console.log(header);
+        if (what)
+          console.log(what);
+        console.log('');
+      }
+
+      var config = {
+        username: '',
+        password: '',
+        port: 3232
+      };
+
+      var client = new Y();
+
+      client.open('ws://localhost:' + config.port);
+      client.on('open', function() {
+        LOG('OPEN')
+        client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
+          if (err)
+            return console.log(err);
+
+          LOG('AUTHENTICATED');
+
+          client.emit('presence');
+          client.emit('ping', function() {
+            // console.log('lol')
+          });
+          client.emit('energy', function(err, energy) {
+            console.log(err || energy);
+          });
+        });
+        client.emit('ping', function() {
+          console.log('pong')
+        });
+      });
+      // client.on('presence', function(payload) {
+      //   console.log('presence:');
+      //   console.log(payload);
+      // });
+      client.on('message', function(stanza) {
+        LOG('IN:', stanza);
+      });
+      client.on('send', function(stanza) {
+        LOG('OUT:', stanza);
+      });
+      client.on('close', function() {
+        LOG('CLOSED')
+      })
+      client.on('error', function(err) {
+        LOG('ERRROR:', err);
+      });
+
+
+      // var client = new conducto.Client();
+      // client.open('ws://localhost:3232');
+      // client.on('open', function() {
+      //   console.log('OPEN');
+      //   client.emit('ping', function() {
+      //     console.log('pong')
+      //   })
+      // });
+      // client.on('error', function(err) {
+      //   console.log(err)
+      // })
+      // client.on('close', function() {
+      //   console.log('close')
+      // })
+    </script>
+  </head>
+  <body>
+    <div id="console"/>
+    <div id="logs"/>
+  </body>
+</html>
