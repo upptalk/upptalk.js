@@ -29,18 +29,19 @@ module.exports = function(grunt) {
         dest: 'yuilop.js'
       }
     },
-    // uglify: {
-    //   my_target: {
-    //     files: {
-    //       'build/yuilop.min.js': ['build/yuilop.js']
-    //     }
-    //   }
-    // }
+    uglify: {
+      my_target: {
+        files: {
+          'yuilop.min.js': ['yuilop.js']
+        }
+      }
+    },
   });
 
   // grunt.loadNpmTasks('grunt-contrib-uglify');
   // grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   // grunt.registerTask('concat')
-  // grunt.registerTask('build', ['clean', 'concat', 'uglify']);
+  grunt.registerTask('build', ['concat', 'uglify']);
 };

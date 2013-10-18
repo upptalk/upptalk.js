@@ -541,9 +541,6 @@ var methods = {
     if (error.data)
       error = error.data;
 
-    console.log();
-    console.log(err);
-    console.log()
     this.emit('error', error);
   },
   onClose: function() {
@@ -878,15 +875,15 @@ for (var i in methods)
   var methods = {
     onOpen: function() {
       this.emit('open');
-      this.transport.addEventListener('close', this.onClose.bind(this));
-      this.transport.addEventListener('error', this.onError.bind(this));
-      this.transport.addEventListener('message', this.onMessage.bind(this));
     },
     open: function(url) {
       this.url = url;
       var transport = new WebSocket(url);
       transport.addEventListener('open', this.onOpen.bind(this));
-      this.transport = transport;
+      transport.addEventListener('close', this.onClose.bind(this));
+      transport.addEventListener('error', this.onError.bind(this));
+      transport.addEventListener('message', this.onMessage.bind(this));
+      transport = transport;
     },
   }
   for (var i in methods)

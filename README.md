@@ -31,6 +31,11 @@ Open the connection.
 ```javascript
 y.open(url);
 ```
+### close
+Close the connection.
+```javascript
+y.close();
+```
 
 ### emit
 Emit an event

@@ -12,6 +12,9 @@
   });
   y.on('send', function(message) {
     view.log('out', message);
+  });
+  y.on('error', function(err) {
+    console.log(err);
   })
 
   var statusEl;
