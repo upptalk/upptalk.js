@@ -13,8 +13,8 @@ else {
 }
 
 var config = {
-  username: '+34711733343',
-  password: 'lv6teo8jdnag7w9rvn9xxvdlzpeaxv7g98ify7oa',
+  username: '',
+  password: '',
   port: 3232,
 }
 
