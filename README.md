@@ -163,7 +163,7 @@ Y.emit('energy', function(err, energy) {
  //energy is an number
 });
 ```
-##### Get energy remaining
+##### Get remaining SMS/minutes
 ```javascript
 //if number is omited, user number is assumed
 Y.emit('remaining', [number,] function(err, energy) {
@@ -208,8 +208,8 @@ Y.emit('chatstate', chatstate);
 ```javascript
 var lastactivity = {
   user: //user id
-}
-Y.emit('lastactivity', lastactivity, function(err, lastActivity) {
+};
+Y.emit('last-activity', lastactivity, function(err, lastActivity) {
   //lastActivity is a number, in seconds of user's last activity
 });
 ```
@@ -220,7 +220,7 @@ Y.emit('lastactivity', lastactivity, function(err, lastActivity) {
 Y.emit('phonenumbers', number, function(err, phonenumbers) {
   //phonenumbers.real is the real user phone number
   //phonenumbers.yuilop is the useryuilop + number
-  
+
   //phonenumbers.real must always be used as the user id even for + numbers
   //if nor real or yuilop is present, it means the number isn't registed
 });
@@ -269,7 +269,7 @@ Y.emit('upload', file,
 ##### Listen message
 ```javascript
 Y.on('message', function(message) {
-  
+
 });
 ```
 ##### Send message
