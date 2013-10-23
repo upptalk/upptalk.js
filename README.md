@@ -10,7 +10,7 @@ npm install https://github.com/yuilop/yuilop.js
 
 ##### For browser usage:
 ```shell
-npm install -g grunt
+npm install -g grunt-cli
 grunt build
 ```
 
