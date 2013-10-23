@@ -8,6 +8,12 @@ yuilop.js is a JavaScript library to consume, use and abuse yuilop APIs.
 npm install https://github.com/yuilop/yuilop.js
 ```
 
+##### For browser usage:
+```shell
+npm install -g grunt
+grunt build
+```
+
 ## Include
 ###Node.JS
 ```javascript
