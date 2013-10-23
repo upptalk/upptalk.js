@@ -15,7 +15,11 @@
   "scripts": {
     "test": "mocha -u tdd -A -b"
   },
+  "dependencies": {
+    "conducto": "git+https://github.com/conducto/conducto.git"
+  },
   "devDependencies": {
+    "wolfy87-eventemitter": "~4.2.4",
     "mocha": "~1.12.0",
     "bower": "~0.10.0",
     "grunt": "~0.4.1",
