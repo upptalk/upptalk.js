@@ -22,14 +22,14 @@ var isObject = function(obj) {
 var config = {
   username: '',
   password: '',
-  port: 3232,
+  url: 'ws://localhost:3232'
 };
 
 suite('Client API', function() {
   var client = new Y();
 
   test('open', function(done) {
-    client.open('ws://localhost:' + config.port);
+    client.open(config.url);
     client.on('open', done);
   });
   test('ping', function(done) {

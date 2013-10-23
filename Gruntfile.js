@@ -20,6 +20,7 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
+          'jsqr-0.2-min.js',
           'node_modules/conducto/node_modules/wolfy87-eventemitter/EventEmitter.js',
           'node_modules/conducto/lib/utils.js',
           'node_modules/conducto/lib/Connection.js',
