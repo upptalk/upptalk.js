@@ -17,11 +17,15 @@ module.exports = function(grunt) {
     //     src: ['build']
     //   }
     // },
+    clean: [
+      'yuilop.js',
+      'yuilop.min.js'
+    ],
     concat: {
       dist: {
         src: [
           'jsqr-0.2-min.js',
-          'node_modules/conducto/node_modules/wolfy87-eventemitter/EventEmitter.js',
+          'node_modules/wolfy87-eventemitter/EventEmitter.js',
           'node_modules/conducto/lib/utils.js',
           'node_modules/conducto/lib/Connection.js',
           'node_modules/conducto/lib/Client.js',
@@ -40,7 +44,7 @@ module.exports = function(grunt) {
   });
 
   // grunt.loadNpmTasks('grunt-contrib-uglify');
-  // grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   // grunt.registerTask('concat')
