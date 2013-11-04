@@ -24,8 +24,11 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          'jsqr-0.2-min.js',
+          'PhoneNumber.js/PhoneNumberMetaData.js',
+          'PhoneNumber.js/PhoneNumberNormalizer.js',
+          'PhoneNumber.js/PhoneNumber.js',
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
+          'node_modules/request.js/lib/index.js',
           'node_modules/conducto/lib/utils.js',
           'node_modules/conducto/lib/Connection.js',
           'node_modules/conducto/lib/Client.js',
