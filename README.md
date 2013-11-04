@@ -75,27 +75,6 @@ y.on('echo', function(payload, res, next) {
 });
 ```
 
-### use
-use is similar to on but catch all remote events.
-```javascript
-y.use(function(req, res, next) {
-  if (req.method !== 'echo')
-    return next();
-
-  var err;
-  var ok;
-  if (typeof req.payload === 'undefined')
-    err = 'Payload must be set to be echoed';
-  else
-    ok = payload;
-
-  if (res) //server expects an answer
-    res(err, ok);
-
-  //next() we don't call it so that other listeners aren't called
-});
-```
-
 ## Events - local
 
 ### open
@@ -141,11 +120,21 @@ y.on('close', function() {
 });
 ```
 
-
-
-
 ## Events - remote
 
+### User
+##### Authenticate
+```javascript
+Y.emit('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
+  console.log(err);
+});
+```
+##### Reset password
+```javascript
+Y.emit('password-reset', EMAIL, function(err) {
+  console.log(err);
+});
+```
 ### Presence
 ##### Listen presence
 ```javascript
@@ -193,6 +182,12 @@ var receipt = {
   type: //'received' or 'read'
 }
 Y.emit('receipt', receipt);
+```
+### Upload
+```javascript
+Y.emit('upload', File, function(err, res) {
+
+});
 ```
 ### Chatstate
 ##### Listen chatstate
