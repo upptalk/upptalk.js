@@ -3,20 +3,6 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    // jshint: {
-    //   all: [
-    //     '*.js',
-    //     '*.json',
-    //   ]
-    // },
-    // jsvalidate: {
-    //   files: ['*.js', 'src/**/*.js']
-    // },
-    // clean: {
-    //   build: {
-    //     src: ['build']
-    //   }
-    // },
     clean: [
       'yuilop.js',
       'yuilop.min.js'
@@ -44,12 +30,59 @@ module.exports = function(grunt) {
         }
       }
     },
+    jsvalidate: {
+      options:{
+        globals: {},
+        esprimaOptions: {},
+        verbose: true
+      },
+      targetName:{
+        files:{
+          src:[
+            'PhoneNumber.js/**/*.js',
+            'Gruntfile.js',
+            'lib/**/*.js',
+            'test/**/*.js',
+          ]
+        }
+      }
+    },
+    jshint: {
+      files:[
+        'package.json',
+        'Gruntfile.js',
+        'lib/**/*.js',
+        'test/**/*.js',
+      ],
+      options: {
+        jshintrc: '.jshintrc',
+        ignores: ['node_modules/**.js']
+      }
+    },
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'spec',
+          ui: 'tdd',
+          bail: true,
+          timeout: 10000
+        },
+        src: ['test/**/*.js']
+      }
+    }
   });
 
-  // grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  // grunt.registerTask('concat')
+  grunt.loadNpmTasks('grunt-jsvalidate');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-mocha-test');
+
+  grunt.registerTask('mocha', ['mochaTest']);
+  grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
+  grunt.registerTask('test', ['jsvalidate', 'mocha', 'jshint']);
+  grunt.registerTask('default', 'test');
+
   grunt.registerTask('build', ['concat', 'uglify']);
 };

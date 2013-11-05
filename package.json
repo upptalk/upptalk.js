@@ -13,7 +13,7 @@
     "url": "git://github.com/yuilop/yuilop.js.git"
   },
   "scripts": {
-    "test": "mocha -u tdd -A -b"
+    "test": "grunt test"
   },
   "dependencies": {
     "conducto": "git+https://github.com/conducto/conducto.git",
@@ -25,6 +25,9 @@
     "grunt": "~0.4.1",
     "grunt-contrib-uglify": "~0.2.0",
     "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-concat": "~0.2.0"
+    "grunt-contrib-concat": "~0.2.0",
+    "grunt-jsvalidate": "~0.2.2",
+    "grunt-contrib-jshint": "~0.7.0",
+    "grunt-mocha-test": "~0.7.0"
   }
 }
