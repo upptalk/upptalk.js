@@ -12,6 +12,7 @@
     "type": "git",
     "url": "git://github.com/yuilop/yuilop.js.git"
   },
+  "private": true,
   "scripts": {
     "test": "grunt test"
   },
