@@ -3,5 +3,7 @@
   "strict": true,
   "trailing": true,
   "indent": 2,
-  "sub": true
+  "sub": true,
+  "undef": true,
+  "unused": true
 }
