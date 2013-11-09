@@ -40,8 +40,7 @@ suite('Client API', function() {
     });
   });
   test('authenticate', function(done) {
-    client.emit('authenticate', {username: config.username, password: config.password}, function(err, res) {
-      assert(err === undefined);
+    client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
       done();
     });
@@ -98,7 +97,6 @@ suite('Client API', function() {
     done();
   });
   test('chat message to itself', function(done) {
-    var c = 0;
     client.on('chat', function(payload) {
       if (payload.id !== 'test42')
         return;
@@ -126,7 +124,7 @@ suite('Client API', function() {
       assert(typeof payload === 'string');
       if (++c === 2)
         done();
-    })
+    });
     client.emit('chat', {number: '+33651090039', message: {id: 'test43', value: 'hello'}});
   });
   // test('chatstate')
