@@ -6,19 +6,18 @@
     <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
     <script src="../node_modules/mocha/mocha.js"/>
     <script src="../yuilop.js"/>
-    <script>mocha.setup('tdd')</script>
-    <script src="test.js"/>
+    <script src="config.js"/>
     <script>
-      onload = function(){
-        mocha.checkLeaks();
-        mocha.globals(['Y']);
-        var runner = mocha.run();
-
-        // runner.on('test end', function(test){
-        // console.log(test.fullTitle());
-        // });
-      };
+      mocha.setup('tdd');
+      mocha.checkLeaks();
+      mocha.asyncOnly();
+      mocha.bail();
+      mocha.timeout(10000);
+      document.addEventListener('DOMContentLoaded', function() {
+        mocha.run();
+      });
     </script>
+    <script src="test.js"/>
   </head>
   <body>
     <div id="mocha"></div>

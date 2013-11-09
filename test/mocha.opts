@@ -1,0 +1,6 @@
+--reporter spec
+--ui tdd
+--timeout 10000
+--bail
+--async-only
+--check-leaks

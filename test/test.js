@@ -1,29 +1,29 @@
 'use strict';
 
+/* global suite, test */
+
 var assert;
+var config;
 
 if (typeof module !== 'undefined' && typeof Y === 'undefined') {
   var Y = require('../lib/index');
   assert = require('assert');
+  config = require('./config');
 }
 else {
   assert = function assert(expr, msg) {
     if (!expr) throw new Error(msg || 'failed');
-  }
+  };
 }
 
 var isArray = function(obj) {
-  return Array.isArray(obj)
+  return Array.isArray(obj);
 };
 var isObject = function(obj) {
   return (!Array.isArray(obj) && obj !== null && obj !== undefined);
 };
 
-var config = {
-  username: '',
-  password: '',
-  url: 'ws://localhost:3232'
-};
+var groups;
 
 suite('Client API', function() {
   var client = new Y();
@@ -57,20 +57,23 @@ suite('Client API', function() {
     client.emit('remaining', function(err, remaining) {
       assert(err === undefined);
       assert(isObject(remaining));
-      assert(remaining.voice)
-      assert(remaining.sms)
+      assert(remaining.voice);
+      assert(remaining.sms);
       done();
     });
   });
   test('groupchats', function(done) {
     client.emit('groupchats', function(err, groupchats) {
+      groups = groupchats;
       assert(!err);
       assert(isArray(groupchats));
       done();
     });
   });
   test('participants', function(done) {
-    client.emit('participants', '64ef199f-02eb-4f43-83fb-f95677810b9b', function(err, participants) {
+    if (groups.length === 0)
+      return done();
+    client.emit('participants', groups[0].id, function(err, participants) {
       assert(!err);
       assert(isArray(participants));
       done();
@@ -94,15 +97,39 @@ suite('Client API', function() {
     client.emit('presence');
     done();
   });
-  test('chat', function(done) {
+  test('chat message to itself', function(done) {
+    var c = 0;
     client.on('chat', function(payload) {
-      if (payload.id === 'test42')
+      if (payload.id !== 'test42')
+        return;
+
+      assert(payload.message === 'hello');
+      done();
+    });
+    client.emit('chat', {user: config.username, message: {id: 'test42', value: 'hello'}});
+  });
+  test('chat message to number', function(done) {
+    var c = 0;
+    client.on('receipt', function(payload) {
+      if (payload.id !== 'test43')
+        return;
+
+      if (payload.type === 'error')
+        return done();
+
+      assert(payload.type === 'sent');
+
+      if (++c === 2)
         done();
     });
-    client.emit('chat', {user: '+34711733343', message: {id: 'test42', value: 'hello'}});
+    client.on('energy', function(payload) {
+      assert(typeof payload === 'string');
+      if (++c === 2)
+        done();
+    })
+    client.emit('chat', {number: '+33651090039', message: {id: 'test43', value: 'hello'}});
   });
   // test('chatstate')
   // test('presence')
   // test('receipt')
-  // test('chat')
 });

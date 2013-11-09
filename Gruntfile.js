@@ -65,7 +65,9 @@ module.exports = function(grunt) {
           reporter: 'spec',
           ui: 'tdd',
           bail: true,
-          timeout: 10000
+          timeout: 10000,
+          'async-only': true,
+          'check-leaks': true
         },
         src: ['test/**/*.js']
       }

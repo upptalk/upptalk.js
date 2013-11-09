@@ -1,7 +1,7 @@
 'use strict';
 
 var Y = require('..');
-var ping = require('../node_modules/conducto/lib/middleware/ping');
+var config = require('../test/config');
 
 var LOG = function(header, what) {
   console.log('');
@@ -11,15 +11,7 @@ var LOG = function(header, what) {
   console.log('');
 }
 
-var config = {
-  username: '',
-  password: '',
-  port: 3232
-}
-
-var client = new Y();
-
-client.open('ws://localhost:' + config.port);
+var client = new Y(config.url);
 client.on('open', function() {
   LOG('OPEN')
   client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
@@ -29,21 +21,18 @@ client.on('open', function() {
     LOG('AUTHENTICATED');
 
     client.emit('presence');
-    client.emit('ping', function() {
-      // console.log('lol')
+    client.emit('ping', function(err, res) {
+      console.log(err || res);
     });
     client.emit('energy', function(err, energy) {
       console.log(err || energy);
     });
   });
-  client.emit('ping', function() {
-    console.log('pong')
-  });
 });
-// client.on('presence', function(payload) {
-//   console.log('presence:');
-//   console.log(payload);
-// });
+client.on('presence', function(payload) {
+  console.log('presence:');
+  console.log(payload);
+});
 client.on('message', function(stanza) {
   LOG('IN:', stanza);
 });
@@ -56,15 +45,5 @@ client.on('close', function() {
 client.on('error', function(err) {
   LOG('ERRROR:', err);
 });
-// client.on('presence', function(payload, res, next) {
-//   console.log('on presence')
-//   next();
-// });
-// client.use(function(req, res, next) {
-//   if (req.method === 'presence')
-//     console.log('use presence');
-
-//   next();
-// });
 
 client.use(ping);

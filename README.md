@@ -125,20 +125,20 @@ y.on('close', function() {
 ### User
 ##### Authenticate
 ```javascript
-Y.emit('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
+y.emit('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
   console.log(err);
 });
 ```
 ##### Reset password
 ```javascript
-Y.emit('password-reset', EMAIL, function(err) {
+y.emit('password-reset', EMAIL, function(err) {
   console.log(err);
 });
 ```
 ### Presence
 ##### Listen presence
 ```javascript
-Y.on('presence', function(presence) {
+y.on('presence', function(presence) {
   //presence.user is user id
   //presence.type can be either 'online' or 'offline'
 });
@@ -149,19 +149,30 @@ var presence = {
   type: //'online' or 'offline'
 };
 //if data is omited, {type: 'online'} is assumed.
-Y.emit('presence'[, data]);
+y.emit('presence'[, data]);
 ```
 ### Energy
-##### Get energy left
+##### Listen for energy events
+If an action that involves energy change is made, server will push an energy notification to the client.
+For example if you send a chat message to a non-registered number.
 ```javascript
-Y.emit('energy', function(err, energy) {
- //energy is an number
+y.on('energy', function(energy) {
+  console.log(energy);
+  //'123.53'
+});
+```
+##### Get energy left
+You can request energy left to the server be emitting an energy event.
+```javascript
+y.emit('energy', function(err, energy) {
+  console.log(energy);
+  //'123.53'
 });
 ```
 ##### Get remaining SMS/minutes
 ```javascript
 //if number is omited, user number is assumed
-Y.emit('remaining', [number,] function(err, energy) {
+y.emit('remaining', [number,] function(err, energy) {
   //energy.sms is the number of SMS left for the given number
   //energy.voice is the number of seconds left for the given number
   //both of them are a number or 'unlimited'
@@ -170,7 +181,7 @@ Y.emit('remaining', [number,] function(err, energy) {
 ### Receipts
 ##### Listen receipt
 ```javascript
-Y.on('receipt', function(receipt) {
+y.on('receipt', function(receipt) {
   //receipt.id is the message id concerned
   //receipt.type can be 'sent' or 'received' or 'read' or 'error'
 });
@@ -181,18 +192,18 @@ var receipt = {
   id: //message id,
   type: //'received' or 'read'
 }
-Y.emit('receipt', receipt);
+y.emit('receipt', receipt);
 ```
 ### Upload
 ```javascript
-Y.emit('upload', File, function(err, res) {
+y.emit('upload', File, function(err, res) {
 
 });
 ```
 ### Chatstate
 ##### Listen chatstate
 ```javascript
-Y.on('chatstate', function(chatstate) {
+y.on('chatstate', function(chatstate) {
   //chatstate.user is user id
   //chatste.type is 'composing' or 'paused'
 })
@@ -202,7 +213,7 @@ Y.on('chatstate', function(chatstate) {
 var chatstate = {
   type: //either 'composing' or 'paused'
 }
-Y.emit('chatstate', chatstate);
+y.emit('chatstate', chatstate);
 ```
 ### Last activity
 ##### Get last activity
@@ -210,7 +221,7 @@ Y.emit('chatstate', chatstate);
 var lastactivity = {
   user: //user id
 };
-Y.emit('last-activity', lastactivity, function(err, lastActivity) {
+y.emit('last-activity', lastactivity, function(err, lastActivity) {
   //lastActivity is a number, in seconds of user's last activity
 });
 ```
@@ -218,7 +229,7 @@ Y.emit('last-activity', lastactivity, function(err, lastActivity) {
 ##### Get associated phone numbers for a number
 ```javascript
 //Number must be a E164 formated phone number
-Y.emit('phonenumbers', number, function(err, phonenumbers) {
+y.emit('phonenumbers', number, function(err, phonenumbers) {
   //phonenumbers.real is the real user phone number
   //phonenumbers.yuilop is the useryuilop + number
 
@@ -230,13 +241,13 @@ Y.emit('phonenumbers', number, function(err, phonenumbers) {
 ##### Listen groupchat FIXME
 A groupchat event is received when the user join a groupchat
 ```javascript
-Y.on('groupchat', function(err, groupchat) {
+y.on('groupchat', function(err, groupchat) {
   //groupchat.id is the groupchat id
 });
 ```
 ##### Get groupchats
 ```javascript
-Y.emit('groupchats', function(err, groupchats) {
+y.emit('groupchats', function(err, groupchats) {
   //groupchats is an array of groupchat objects
   for (var i = 0; i < groupchats.length; i++) {
     console.log('groupchat id :' groupchats[i].id);
@@ -246,7 +257,7 @@ Y.emit('groupchats', function(err, groupchats) {
 ```
 ##### Get groupchat participants
 ```javascript
-Y.emit('participants', {groupchat: id}, function(err, participants) {
+y.emit('participants', {groupchat: id}, function(err, participants) {
   //participants is an array of participant objects
   for (var i = 0; i < participants.length; i++) {
     console.log('participant user id :' participants[i].user);
@@ -257,7 +268,7 @@ Y.emit('participants', {groupchat: id}, function(err, participants) {
 ### Message
 ##### Upload a file
 ```javascript
-Y.emit('upload', file,
+y.emit('upload', file,
   //when request completes
   function(err, result) {
   },
@@ -269,23 +280,23 @@ Y.emit('upload', file,
 ```
 ##### Listen message
 ```javascript
-Y.on('message', function(message) {
+y.on('message', function(message) {
 
 });
 ```
 ##### Send message
 ```javascript
-Y.emit('message', message);
+y.emit('message', message);
 ```
 ### Storage
 ##### Listen storage FIXME
 ```javascript
-Y.on('storage', function(storage) {
+y.on('storage', function(storage) {
 })
 ```
 ##### Get storage
 ```javascript
-Y.emit('storage', function(err, storage) {
+y.emit('storage', function(err, storage) {
 
 });
 ```

@@ -4,6 +4,7 @@
     <title>yuilop.js browser example</title>
     <meta charset="UTF-8"/>
     <script type="application/javascript" src="../yuilop.js"/>
+    <script type="application/javascript" src="../test/config.js"/>
 
     <script>
       var LOG = function(header, what) {
@@ -14,15 +15,8 @@
         console.log('');
       }
 
-      var config = {
-        username: '',
-        password: '',
-        port: 3232
-      };
-
-      var client = new Y();
-
-      client.open('ws://localhost:' + config.port);
+      var client = new Y(config.url);
+      client.open();
       client.on('open', function() {
         LOG('OPEN')
         client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
@@ -32,16 +26,16 @@
           LOG('AUTHENTICATED');
 
           client.emit('presence');
-          client.emit('ping', function() {
+          // client.emit('ping', function() {
             // console.log('lol')
-          });
-          client.emit('energy', function(err, energy) {
-            console.log(err || energy);
-          });
+          // });
+          // client.emit('energy', function(err, energy) {
+          //   console.log(err || energy);
+          // });
         });
-        client.emit('ping', function() {
-          console.log('pong')
-        });
+        // client.emit('ping', function() {
+        //   console.log('pong')
+        // });
       });
       // client.on('presence', function(payload) {
       //   console.log('presence:');
