@@ -14,7 +14,8 @@
   },
   "private": true,
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "postinstall": "grunt concat"
   },
   "dependencies": {
     "conducto": "git+https://github.com/conducto/conducto.git",

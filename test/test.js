@@ -156,10 +156,12 @@ suite('Client API', function() {
   });
   test('get profile of contact', function(done) {
     client.emit('profile', 'sonnypiers8', function(err, res) {
-      //FIXME
+      assert(!err);
+      for (var i in profile)
+        assert(profile[i] === res[i]);
       done();
     });
-  })
+  });
   // test('chatstate')
   // test('presence')
   // test('receipt')
