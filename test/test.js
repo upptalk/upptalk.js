@@ -22,6 +22,17 @@ var isArray = function(obj) {
 var isObject = function(obj) {
   return (!Array.isArray(obj) && obj !== null && obj !== undefined);
 };
+var profile = {
+  fullname: 'John Doe2',
+  nickname: 'John',
+  email: 'john@doe.com',
+  birthday: '1234-12-30',
+  avatar: 'http://www.johndoe.pro/img/John_Doe.jpg',
+  city: 'Denver',
+  region: 'US-AL',
+  country: 'US'
+};
+
 
 var groups;
 
@@ -127,6 +138,28 @@ suite('Client API', function() {
     });
     client.emit('chat', {number: '+33651090039', message: {id: 'test43', value: 'hello'}});
   });
+  test('set profile', function(done) {
+    client.emit('profile', profile, function(err, res) {
+      assert(!err);
+      assert(err === undefined);
+      assert(res === undefined);
+      done();
+    });
+  });
+  test('get own profile', function(done) {
+    client.emit('profile', function(err, res) {
+      assert(!err);
+      for (var i in profile)
+        assert(profile[i] === res[i]);
+      done();
+    });
+  });
+  test('get profile of contact', function(done) {
+    client.emit('profile', 'sonnypiers8', function(err, res) {
+      //FIXME
+      done();
+    });
+  })
   // test('chatstate')
   // test('presence')
   // test('receipt')

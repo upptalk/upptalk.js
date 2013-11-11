@@ -135,6 +135,36 @@ y.emit('password-reset', EMAIL, function(err) {
   console.log(err);
 });
 ```
+### Profile
+##### Set Profile
+```javascript
+var profile = {
+  fullname: 'John Doe',
+  nickname: 'John',
+  email: 'john@doe.com',
+  birthday: '1234-12-30',
+  avatar: 'http://example.com/whatever.png',
+  city: 'Denver',
+  region: 'US-AL',
+  country: 'US'
+};
+y.emit('profile', profile, function(err) {
+  if (err)
+    return console.log(err);
+});
+```
+##### Get profile
+```javascript
+y.emit('profile', function(err, profile) {
+  //profile is a profile object as described below
+});
+```
+##### Get user profile
+```javascript
+y.emit('profile', username, function(err, profile) {
+  //profile is a profile object as described below
+});
+```
 ### Presence
 ##### Listen presence
 ```javascript
