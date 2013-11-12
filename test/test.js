@@ -140,7 +140,6 @@ suite('Client API', function() {
   });
   test('set profile', function(done) {
     client.emit('profile', profile, function(err, res) {
-      assert(!err);
       assert(err === undefined);
       assert(res === undefined);
       done();
@@ -159,6 +158,13 @@ suite('Client API', function() {
       assert(!err);
       for (var i in profile)
         assert(profile[i] === res[i]);
+      done();
+    });
+  });
+  test('change password', function(done) {
+    client.emit('password', config.password, function(err, res) {
+      assert(err === undefined);
+      assert(res === undefined);
       done();
     });
   });

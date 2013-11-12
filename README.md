@@ -123,15 +123,50 @@ y.on('close', function() {
 ## Events - remote
 
 ### User
+##### Register
+```javascript
+y.emit('captcha', function(err, captcha) {
+  //captcha object is similar to {
+  //  "token": "TOKEN",
+  //  "question": "Where is the heart?",
+  //  "choices": [
+  //    "data:image/png;base64,DATA",
+  //    "data:image/png;base64,DATA",
+  //    "data:image/png;base64,DATA",
+  //  ]
+  //}
+});
+```
+You'll have then to send the token and the choice array index.
+```javascript
+var payload = {
+  username: '',
+  password: '',
+  email:    '',
+  captcha:  '', //the captcha choice array index
+  lang:     '', //ISO lang code e.g. es
+  token:    '', //the captcha token
+};
+y.emit('register', payload, function(err) {
+  console.log(err);
+});
+```
 ##### Authenticate
 ```javascript
 y.emit('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
   console.log(err);
 });
 ```
+##### Change password
+```javascript
+y.emit('password', password, function(err) {
+  console.log(err);
+});
+```
+If the password was succefully changed, (no error) the server will close the connection, you'll have to open it again and authenticate again with the new password.
 ##### Reset password
 ```javascript
-y.emit('password-reset', EMAIL, function(err) {
+y.emit('password:reset', EMAIL, function(err) {
   console.log(err);
 });
 ```
