@@ -71,7 +71,16 @@ module.exports = function(grunt) {
         },
         src: ['test/**/*.js']
       }
-    }
+    },
+    watch: {
+      scripts: {
+        files: "<%= concat.dist.src %>",
+        tasks: ['jsvalidate', 'build'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
   });
 
   grunt.loadNpmTasks('grunt-contrib-clean');
@@ -80,6 +89,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-jsvalidate');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha-test');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
