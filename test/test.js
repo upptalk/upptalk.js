@@ -75,10 +75,12 @@ suite('Client', function() {
 });
 
 suite('Client API', function() {
-  var client = new Y();
+  var client = new Y(config);
+  client.username = config.username;
+  client.password = config.password;
 
   test('open', function(done) {
-    client.open(config.url);
+    client.open();
     client.on('open', done);
   });
   test('ping', function(done) {
@@ -88,12 +90,53 @@ suite('Client API', function() {
       done();
     });
   });
+  test('register:available false', function(done) {
+    client.emit('register:available', config.username, function(err, res) {
+      assert(!err);
+      assert(res === false);
+      done();
+    });
+  });
+  test('register:available true', function(done) {
+    client.emit('register:available', Math.random().toString(), function(err, res) {
+      assert(!err);
+      assert(res === true);
+      done();
+    });
+  });
+  // test('register', function(done) {
+  //   var register = {
+
+  //   };
+  //   client.emit('register', register, function() {
+  //     console.log(arguments);
+  //   })
+  // });
+  test('captcha', function(done) {
+    client.emit('captcha', function(err, res) {
+      assert(!err);
+      assert(typeof res === 'object');
+      assert(typeof res.token === 'string');
+      assert(typeof res.question === 'string');
+      assert(Array.isArray(res.choices));
+      assert(res.choices.length === 3);
+      done();
+    });
+  });
   test('authenticate', function(done) {
     client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
       done();
     });
   });
+  //FIXME fix needed for w3c-xmlhttprequest
+  // test('upload', function(done) {
+  //   client.emit('upload', 'hello', function(err, res) {
+  //     assert(!err);
+  //     console.log(res)
+  //     done();
+  //   });
+  // });
   test('energy', function(done) {
     client.emit('energy', function(err, energy) {
       assert(err === undefined);
