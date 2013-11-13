@@ -36,6 +36,44 @@ var profile = {
 
 var groups;
 
+suite('Client', function() {
+  test('default config', function() {
+    var client = new Y();
+    assert(client.secure === true);
+    assert(client.port === 443);
+    assert(client.hostname === 'happy.ym.ms');
+    assert(client.urls.websocket === 'wss://happy.ym.ms:443');
+    assert(client.urls.http === 'https://happy.ym.ms:443');
+  });
+
+  test('custom config, default values', function() {
+    var client = new Y({hostname: 'example.com'});
+    assert(client.secure === true);
+    assert(client.port === 443);
+    assert(client.hostname === 'example.com');
+    assert(client.urls.websocket === 'wss://example.com:443');
+    assert(client.urls.http === 'https://example.com:443');
+  });
+
+  test('custom config, default values', function() {
+    var client = new Y({hostname: 'example.com'});
+    assert(client.secure === true);
+    assert(client.port === 443);
+    assert(client.hostname === 'example.com');
+    assert(client.urls.websocket === 'wss://example.com:443');
+    assert(client.urls.http === 'https://example.com:443');
+  });
+
+  test('custom config, string', function() {
+    var client = new Y('example.com');
+    assert(client.secure === true);
+    assert(client.port === 443);
+    assert(client.hostname === 'example.com');
+    assert(client.urls.websocket === 'wss://example.com:443');
+    assert(client.urls.http === 'https://example.com:443');
+  });
+});
+
 suite('Client API', function() {
   var client = new Y();
 
