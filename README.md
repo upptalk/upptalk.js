@@ -29,13 +29,21 @@ var Y = require('yuilop.js');
 ### Init
 Create a yuilop.js client instance.
 ```javascript
-var y = new Y(url);
+var y = new Y(options);
+```
+options argument is a optional. If it's not defined, yuilop production environment will be used.
+```javascript
+var options = {
+  hostname : 'example.com',
+  port: 443,
+  secure: true
+};
 ```
 
 ### open
 Open the connection.
 ```javascript
-y.open(url);
+y.open();
 ```
 ### close
 Close the connection.
