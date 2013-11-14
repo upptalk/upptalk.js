@@ -1,6 +1,5 @@
 --reporter spec
 --ui tdd
---timeout 10000
+--timeout 20000
 --bail
---async-only
 --check-leaks

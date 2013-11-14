@@ -310,6 +310,33 @@ y.emit('phonenumbers', number, function(err, phonenumbers) {
   //if nor real or yuilop is present, it means the number isn't registed
 });
 ```
+### Contacts
+##### Sync contacts
+You can send a list of ids of different services and get associated upptalk username.
+```javascript
+//valid types are 'username', 'phone', 'fb', 'email', 'twitter', 'gplus', 'linkedin'
+//username is type for upptalk usernames
+//each type can by an id or an array of ids
+var sync = {
+  phone: ['+33651090039'],
+  username: ['janedoe'],
+  twitter: 'cuicui'
+};
+y.on('sync', sync, function(err, synced) {
+  console.log(synced);
+  //{
+  //  'phone': {
+  //    '+33651090039': 'johndoe', //username for this number is 'johnedoe'
+  //  },
+  //  'username': {
+  //    'janedoe': 'janedoe', //this username is a registered account
+  //  },
+  //  'twitter': {
+  //    'cuicui': false //this twitter id isn't a registered account
+  //  }
+  //}
+});
+```
 ### Groupchats
 ##### Listen groupchat FIXME
 A groupchat event is received when the user join a groupchat

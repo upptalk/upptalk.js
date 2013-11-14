@@ -177,6 +177,20 @@ suite('Client API', function() {
       done();
     });
   });
+  test('sync', function(done) {
+    var sync = {
+      phone: ['+33651090039'],
+      username: ['sonnypiers10'],
+      // gplus: 'test'
+      // twitter: Math.random().toString()
+    };
+    client.emit('sync', sync, function(err, synced) {
+      assert(!err);
+      for (var i in sync)
+        assert(synced[i])
+      done();
+    });
+  });
   test('last-activity', function(done) {
     client.emit('last-activity', function(err, lastActivity) {
       assert(!err);
