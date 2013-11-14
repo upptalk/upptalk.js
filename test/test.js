@@ -110,7 +110,7 @@ suite('Client API', function() {
   //   };
   //   client.emit('register', register, function() {
   //     console.log(arguments);
-  //   })
+  //   });
   // });
   test('captcha', function(done) {
     client.emit('captcha', function(err, res) {
