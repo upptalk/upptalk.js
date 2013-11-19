@@ -33,7 +33,6 @@ var profile = {
   country: 'US'
 };
 
-
 var groups;
 
 suite('Client', function() {
@@ -81,7 +80,7 @@ suite('Client API', function() {
 
   test('open', function(done) {
     client.open();
-    client.on('open', done);
+    client.once('open', done);
   });
   test('ping', function(done) {
     client.emit('ping', function(err, res) {
@@ -137,6 +136,10 @@ suite('Client API', function() {
   //     done();
   //   });
   // });
+  test('presence', function(done) {
+    client.emit('presence');
+    done();
+  });
   test('energy', function(done) {
     client.emit('energy', function(err, energy) {
       assert(err === undefined);
@@ -187,7 +190,7 @@ suite('Client API', function() {
     client.emit('sync', sync, function(err, synced) {
       assert(!err);
       for (var i in sync)
-        assert(synced[i])
+        assert(synced[i]);
       done();
     });
   });
@@ -198,23 +201,30 @@ suite('Client API', function() {
       done();
     });
   });
-  test('presence', function(done) {
-    client.emit('presence');
-    done();
-  });
   test('chat message to itself', function(done) {
-    client.on('chat', function(payload) {
+    //https://yuilop.atlassian.net/browse/CORE-1726
+    // var c = 0;
+    // client.once('receipt', function(payload) {
+    //   if (payload.id !== 'test42')
+    //     return;
+
+    //   if (++c === 2)
+    //     done();
+    // });
+    client.once('chat', function(payload) {
       if (payload.id !== 'test42')
         return;
 
       assert(payload.message === 'hello');
+
+      // if (++c === 2)
       done();
     });
     client.emit('chat', {user: config.username, message: {id: 'test42', value: 'hello'}});
   });
   test('chat message to number', function(done) {
     var c = 0;
-    client.on('receipt', function(payload) {
+    client.once('receipt', function(payload) {
       if (payload.id !== 'test43')
         return;
 
@@ -226,7 +236,7 @@ suite('Client API', function() {
       if (++c === 2)
         done();
     });
-    client.on('energy', function(payload) {
+    client.once('energy', function(payload) {
       assert(typeof payload === 'string');
       if (++c === 2)
         done();
@@ -251,7 +261,7 @@ suite('Client API', function() {
   test('get profile of contact', function(done) {
     client.emit('profile', 'sonnypiers8', function(err, res) {
       assert(!err);
-      for (var i in profile)
+      for (var i in res)
         assert(profile[i] === res[i]);
       done();
     });
@@ -260,6 +270,9 @@ suite('Client API', function() {
     client.emit('password', config.password, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
+      // done();
+    });
+    client.once('close', function() {
       done();
     });
   });
