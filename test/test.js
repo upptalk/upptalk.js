@@ -220,7 +220,7 @@ suite('Client API', function() {
       // if (++c === 2)
       done();
     });
-    client.emit('chat', {user: config.username, message: {id: 'test42', value: 'hello'}});
+    client.emit('chat', {user: config.username, id: 'test42', text: 'hello'});
   });
   test('chat message to number', function(done) {
     var c = 0;
@@ -241,7 +241,7 @@ suite('Client API', function() {
       if (++c === 2)
         done();
     });
-    client.emit('chat', {number: '+33651090039', message: {id: 'test43', value: 'hello'}});
+    client.emit('chat', {number: '+33651090039', id: 'test43', text: 'hello'});
   });
   test('set profile', function(done) {
     client.emit('profile', profile, function(err, res) {
@@ -270,7 +270,6 @@ suite('Client API', function() {
     client.emit('password', config.password, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
-      // done();
     });
     client.once('close', function() {
       done();

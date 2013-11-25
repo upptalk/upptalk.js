@@ -386,6 +386,49 @@ y.on('message', function(message) {
 ```
 ##### Send message
 ```javascript
+var message = {
+  id: 'id'
+};
+//
+//Recipient
+//
+
+//yuilop user:
+message.user = 'username';
+//yuilop groupchat:
+message.groupchat = 'groupchat id';
+//non-yuilop number recipient
+message.number = 'phone number';
+
+//
+//Message type
+//
+
+//text
+message.text = 'message';
+//file
+message.file = {
+  url: 'https://example.com/file.jpeg',
+  size: '1234',
+  type: 'image/jpeg',
+  thumbnail: {
+    url: 'https://example.com/thumbnail.jpeg',
+    size: '234',
+    type: 'image/jpeg'
+  }
+};
+//location
+message.location = {
+  url: 'https://maps.google.com/example',
+  latitude: '34.4322',
+  longitude: '12.1234',
+  thumbnail: {
+    url: 'https://maps.google.com/thumbnail.png',
+    type: 'image/png',
+    size: '1234'
+  }
+};
+
 y.emit('message', message);
 ```
 ### Storage
