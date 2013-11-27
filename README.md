@@ -291,11 +291,8 @@ y.emit('chatstate', chatstate);
 ### Last activity
 ##### Get last activity
 ```javascript
-var lastactivity = {
-  user: //user id
-};
-y.emit('last-activity', lastactivity, function(err, lastActivity) {
-  //lastActivity is a number, in seconds of user's last activity
+y.emit('last-activity', username, function(err, lastActivity) {
+  //lastActivity is a string of seconds since user's last activity
 });
 ```
 ### Phone numbers
@@ -338,7 +335,18 @@ y.on('sync', sync, function(err, synced) {
 });
 ```
 ### Groupchats
-##### Listen groupchat FIXME
+##### Create groupchat
+```javascript
+y.emit('groupchat', function(err, id) {
+	//id is the id of the newly created groupchat
+});
+```
+##### Name/rename groupchat
+```javascript
+y.emit('groupchat:name', {id: 'groupchat', name: 'name'}, function(err) {
+});
+```
+##### Listen groupchat
 A groupchat event is received when the user join a groupchat
 ```javascript
 y.on('groupchat', function(err, groupchat) {
