@@ -343,7 +343,24 @@ y.emit('groupchat', function(err, id) {
 ```
 ##### Name/rename groupchat
 ```javascript
-y.emit('groupchat:name', {id: 'groupchat', name: 'name'}, function(err) {
+y.emit('groupchat:name', {groupchat: 'groupchat', name: 'name'}, function(err) {
+});
+```
+##### Invite user to join groupchat
+```javascript
+var invitation = {groupchat: 'groupchat', user: 'username'};
+y.emit('groupchat:invite', invitation, function(err) {
+});
+```
+##### Kick user from groupchat
+```javascript
+var kick = {groupchat: 'groupchat', user: 'username'};
+y.emit('groupchat:kick', kick, function(err) {
+});
+```
+##### Leave groupchat
+```javascript
+y.emit('groupchat:leave', 'groupchat', function(err) {
 });
 ```
 ##### Listen groupchat
