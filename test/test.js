@@ -34,6 +34,7 @@ var profile = {
 };
 
 var groups;
+var groupchat;
 
 suite('Client', function() {
   test('default config', function() {
@@ -156,22 +157,47 @@ suite('Client API', function() {
       done();
     });
   });
+  test('groupchat', function(done) {
+    client.emit('groupchat', function(err, res) {
+      assert(typeof res === 'string');
+      groupchat = res;
+      done();
+    });
+  });
+  test('groupchat:name', function(done) {
+    client.emit('groupchat:name', {groupchat: groupchat, name: 'foo'}, function(err) {
+      assert(!err);
+      done();
+    });
+  });
   test('groupchats', function(done) {
     client.emit('groupchats', function(err, groupchats) {
       groups = groupchats;
       assert(!err);
       assert(isArray(groupchats));
+      var gc;
+      for (var i = 0; i < groupchats.length; i++) {
+        if (groupchats[i].id === groupchat) {
+          gc = groupchats[i];
+        }
+        else {
+          client.emit('groupchat:leave', groupchats[i].id);
+        }
+      }
+      assert(typeof gc === 'object');
+      assert(gc.name === 'foo');
       done();
     });
   });
   test('participants', function(done) {
-    if (groups.length === 0)
-      return done();
     client.emit('participants', groups[0].id, function(err, participants) {
       assert(!err);
       assert(isArray(participants));
       done();
     });
+  });
+  test('groupchat:leave', function() {
+    client.emit('groupchat:leave', groupchat);
   });
   test('contacts', function(done) {
     client.emit('contacts', function(err, contacts) {
@@ -203,22 +229,22 @@ suite('Client API', function() {
   });
   test('chat message to itself', function(done) {
     //https://yuilop.atlassian.net/browse/CORE-1726
-    // var c = 0;
-    // client.once('receipt', function(payload) {
-    //   if (payload.id !== 'test42')
-    //     return;
+    var c = 0;
+    client.once('receipt', function(payload) {
+      if (payload.id !== 'test42')
+        return;
 
-    //   if (++c === 2)
-    //     done();
-    // });
+      if (++c === 2)
+        done();
+    });
     client.once('chat', function(payload) {
       if (payload.id !== 'test42')
         return;
 
-      assert(payload.message === 'hello');
+      assert(payload.text === 'hello');
 
-      // if (++c === 2)
-      done();
+      if (++c === 2)
+        done();
     });
     client.emit('chat', {user: config.username, id: 'test42', text: 'hello'});
   });

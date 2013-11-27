@@ -429,7 +429,7 @@ message.location = {
   }
 };
 
-y.emit('message', message);
+y.emit('chat', message);
 ```
 ### Storage
 ##### Listen storage FIXME
