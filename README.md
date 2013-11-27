@@ -335,58 +335,58 @@ y.on('sync', sync, function(err, synced) {
 });
 ```
 ### Groupchats
-##### Create groupchat
+##### Create group
 ```javascript
-y.emit('groupchat', function(err, id) {
-	//id is the id of the newly created groupchat
+y.emit('group', function(err, id) {
+	//id is the id of the newly created group
 });
 ```
-##### Name/rename groupchat
+##### Name/rename group
 ```javascript
-y.emit('groupchat:name', {groupchat: 'groupchat', name: 'name'}, function(err) {
+y.emit('group:name', {group: 'group', name: 'name'}, function(err) {
 });
 ```
-##### Invite user to join groupchat
+##### Invite user to join group
 ```javascript
-var invitation = {groupchat: 'groupchat', user: 'username'};
-y.emit('groupchat:invite', invitation, function(err) {
+var invitation = {group: 'group', user: 'username'};
+y.emit('group:invite', invitation, function(err) {
 });
 ```
-##### Kick user from groupchat
+##### Kick user from group
 ```javascript
-var kick = {groupchat: 'groupchat', user: 'username'};
-y.emit('groupchat:kick', kick, function(err) {
+var kick = {group: 'group', user: 'username'};
+y.emit('group:kick', kick, function(err) {
 });
 ```
-##### Leave groupchat
+##### Leave group
 ```javascript
-y.emit('groupchat:leave', 'groupchat', function(err) {
+y.emit('group:leave', 'group', function(err) {
 });
 ```
-##### Listen groupchat
-A groupchat event is received when the user join a groupchat
+##### Listen group
+A group event is received when the user join a group
 ```javascript
-y.on('groupchat', function(err, groupchat) {
-  //groupchat.id is the groupchat id
+y.on('group', function(err, group) {
+  //group.id is the group id
 });
 ```
-##### Get groupchats
+##### Get groups
 ```javascript
-y.emit('groupchats', function(err, groupchats) {
-  //groupchats is an array of groupchat objects
-  for (var i = 0; i < groupchats.length; i++) {
-    console.log('groupchat id :' groupchats[i].id);
-    console.log('groupchat name :' groupchats[i].name);
+y.emit('groups', function(err, groups) {
+  //groups is an array of group objects
+  for (var i = 0; i < groups.length; i++) {
+    console.log('group id :' groups[i].id);
+    console.log('group name :' groups[i].name);
   }
 });
 ```
-##### Get groupchat participants
+##### Get group members
 ```javascript
-y.emit('participants', {groupchat: id}, function(err, participants) {
-  //participants is an array of participant objects
-  for (var i = 0; i < participants.length; i++) {
-    console.log('participant user id :' participants[i].user);
-    console.log('participant name :' participants[i].name);
+y.emit('members', {group: id}, function(err, member) {
+  //members is an array
+  for (var i = 0; i < members.length; i++) {
+    console.log('member user id :' members[i].user);
+    console.log('member name :' members[i].name);
   }
 });
 ```
@@ -420,8 +420,8 @@ var message = {
 
 //yuilop user:
 message.user = 'username';
-//yuilop groupchat:
-message.groupchat = 'groupchat id';
+//yuilop group:
+message.group = 'group id';
 //non-yuilop number recipient
 message.number = 'phone number';
 
