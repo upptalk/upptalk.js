@@ -137,11 +137,11 @@ y.emit('captcha', function(err, captcha) {
   //captcha object is similar to {
   //  "token": "TOKEN",
   //  "question": "Where is the heart?",
-  //  "choices": [
-  //    "data:image/png;base64,DATA",
-  //    "data:image/png;base64,DATA",
-  //    "data:image/png;base64,DATA",
-  //  ]
+  //  "choices": {
+  //    "id": "data:image/png;base64,DATA",
+  //    "id": "data:image/png;base64,DATA",
+  //    "id": "data:image/png;base64,DATA",
+  //  }
   //}
 });
 ```
@@ -151,7 +151,7 @@ var payload = {
   username: '',
   password: '',
   email:    '',
-  captcha:  '', //the captcha choice array index
+  captcha:  '', //the captcha id choice
   lang:     '', //ISO lang code e.g. es
   token:    '', //the captcha token
 };
