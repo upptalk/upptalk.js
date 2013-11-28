@@ -5,7 +5,9 @@
   var config = {
     username: '',
     password: '',
-    url: 'ws://localhost:9595'
+    hostname: 'localhost',
+    port: 9595,
+    secure: false
   };
 
 

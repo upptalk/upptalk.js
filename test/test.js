@@ -34,7 +34,7 @@ var profile = {
 };
 
 var groups;
-var groupchat;
+var group;
 
 suite('Client', function() {
   test('default config', function() {
@@ -118,8 +118,10 @@ suite('Client API', function() {
       assert(typeof res === 'object');
       assert(typeof res.token === 'string');
       assert(typeof res.question === 'string');
-      assert(Array.isArray(res.choices));
-      assert(res.choices.length === 3);
+      assert(typeof res.choices === 'object');
+      assert(res.choices['1']);
+      assert(res.choices['2']);
+      assert(res.choices['3']);
       done();
     });
   });
@@ -157,31 +159,31 @@ suite('Client API', function() {
       done();
     });
   });
-  test('groupchat', function(done) {
-    client.emit('groupchat', function(err, res) {
+  test('group', function(done) {
+    client.emit('group', function(err, res) {
       assert(typeof res === 'string');
-      groupchat = res;
+      group = res;
       done();
     });
   });
-  test('groupchat:name', function(done) {
-    client.emit('groupchat:name', {groupchat: groupchat, name: 'foo'}, function(err) {
+  test('group:name', function(done) {
+    client.emit('group:name', {group: group, name: 'foo'}, function(err) {
       assert(!err);
       done();
     });
   });
-  test('groupchats', function(done) {
-    client.emit('groupchats', function(err, groupchats) {
-      groups = groupchats;
+  test('groups', function(done) {
+    client.emit('groups', function(err, res) {
+      groups = res;
       assert(!err);
-      assert(isArray(groupchats));
+      assert(isArray(groups));
       var gc;
-      for (var i = 0; i < groupchats.length; i++) {
-        if (groupchats[i].id === groupchat) {
-          gc = groupchats[i];
+      for (var i = 0; i < groups.length; i++) {
+        if (groups[i].id === group) {
+          gc = groups[i];
         }
         else {
-          client.emit('groupchat:leave', groupchats[i].id);
+          client.emit('group:leave', groups[i].id);
         }
       }
       assert(typeof gc === 'object');
@@ -189,15 +191,15 @@ suite('Client API', function() {
       done();
     });
   });
-  test('participants', function(done) {
-    client.emit('participants', groups[0].id, function(err, participants) {
+  test('group:members', function(done) {
+    client.emit('group:members', group, function(err, members) {
       assert(!err);
-      assert(isArray(participants));
+      assert(isArray(members));
       done();
     });
   });
-  test('groupchat:leave', function() {
-    client.emit('groupchat:leave', groupchat);
+  test('group:leave', function() {
+    client.emit('group:leave', group);
   });
   test('contacts', function(done) {
     client.emit('contacts', function(err, contacts) {

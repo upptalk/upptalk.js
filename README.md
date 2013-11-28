@@ -284,7 +284,8 @@ y.on('chatstate', function(chatstate) {
 ##### Send chatstate
 ```javascript
 var chatstate = {
-  type: //either 'composing' or 'paused'
+  type: //either 'composing' or 'paused',
+  user: //username
 }
 y.emit('chatstate', chatstate);
 ```
