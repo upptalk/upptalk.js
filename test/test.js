@@ -112,19 +112,20 @@ suite('Client API', function() {
   //     console.log(arguments);
   //   });
   // });
-  test('captcha', function(done) {
-    client.emit('captcha', function(err, res) {
-      assert(!err);
-      assert(typeof res === 'object');
-      assert(typeof res.token === 'string');
-      assert(typeof res.question === 'string');
-      assert(typeof res.choices === 'object');
-      assert(res.choices['1']);
-      assert(res.choices['2']);
-      assert(res.choices['3']);
-      done();
-    });
-  });
+  // test('captcha', function(done) {
+  //   client.emit('captcha', function(err, res) {
+  //     assert(!err);
+  //     assert(typeof res === 'object');
+  //     console.log(res)
+  //     assert(typeof res.token === 'string');
+  //     assert(typeof res.question === 'string');
+  //     assert(typeof res.choices === 'object');
+  //     assert(res.choices['1']);
+  //     assert(res.choices['2']);
+  //     assert(res.choices['3']);
+  //     done();
+  //   });
+  // });
   test('authenticate', function(done) {
     client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
@@ -154,8 +155,8 @@ suite('Client API', function() {
     client.emit('remaining', function(err, remaining) {
       assert(err === undefined);
       assert(isObject(remaining));
-      assert(remaining.voice);
-      assert(remaining.sms);
+      assert(typeof remaining.voice === 'number');
+      assert(typeof remaining.sms === 'number');
       done();
     });
   });
@@ -201,13 +202,6 @@ suite('Client API', function() {
   test('group:leave', function() {
     client.emit('group:leave', group);
   });
-  test('contacts', function(done) {
-    client.emit('contacts', function(err, contacts) {
-      assert(!err);
-      assert(isObject(contacts));
-      done();
-    });
-  });
   test('sync', function(done) {
     var sync = {
       phone: ['+33651090039'],
@@ -223,7 +217,7 @@ suite('Client API', function() {
     });
   });
   test('last-activity', function(done) {
-    client.emit('last-activity', function(err, lastActivity) {
+    client.emit('last-activity', config.username, function(err, lastActivity) {
       assert(!err);
       assert(lastActivity);
       done();
@@ -231,24 +225,25 @@ suite('Client API', function() {
   });
   test('chat message to itself', function(done) {
     //https://yuilop.atlassian.net/browse/CORE-1726
-    var c = 0;
+    // var c = 0;
     client.once('receipt', function(payload) {
       if (payload.id !== 'test42')
         return;
 
-      if (++c === 2)
-        done();
+      // if (++c === 2)
+      done();
     });
-    client.once('chat', function(payload) {
-      if (payload.id !== 'test42')
-        return;
+    //message from itself disabled
+    // client.once('chat', function(payload) {
+    //   if (payload.id !== 'test42')
+    //     return;
 
-      assert(payload.text === 'hello');
+    //   assert(payload.text === 'hello');
 
-      if (++c === 2)
-        done();
-    });
-    client.emit('chat', {user: config.username, id: 'test42', text: 'hello'});
+    //   if (++c === 2)
+    //     done();
+    // });
+    client.emit('chat', {user: config.username, receipt: true, id: 'test42', text: 'hello'});
   });
   test('chat message to number', function(done) {
     var c = 0;
@@ -269,7 +264,7 @@ suite('Client API', function() {
       if (++c === 2)
         done();
     });
-    client.emit('chat', {number: '+33651090039', id: 'test43', text: 'hello'});
+    client.emit('chat', {number: '+33651090039', receipt: true, id: 'test43', text: 'hello'});
   });
   test('set profile', function(done) {
     client.emit('profile', profile, function(err, res) {

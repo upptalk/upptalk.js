@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "conducto": "git+https://github.com/conducto/conducto.git",
-    "request.js": "~0.0.2"
+    "request.js": "~0.0.3"
   },
   "devDependencies": {
     "wolfy87-eventemitter": "~4.2.4",
