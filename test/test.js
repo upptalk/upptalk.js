@@ -112,20 +112,19 @@ suite('Client API', function() {
   //     console.log(arguments);
   //   });
   // });
-  // test('captcha', function(done) {
-  //   client.emit('captcha', function(err, res) {
-  //     assert(!err);
-  //     assert(typeof res === 'object');
-  //     console.log(res)
-  //     assert(typeof res.token === 'string');
-  //     assert(typeof res.question === 'string');
-  //     assert(typeof res.choices === 'object');
-  //     assert(res.choices['1']);
-  //     assert(res.choices['2']);
-  //     assert(res.choices['3']);
-  //     done();
-  //   });
-  // });
+  test('captcha', function(done) {
+    client.emit('captcha', function(err, res) {
+      assert(!err);
+      assert(typeof res === 'object');
+      assert(typeof res.token === 'string');
+      assert(typeof res.question === 'string');
+      assert(typeof res.choices === 'object');
+      assert(res.choices['1']);
+      assert(res.choices['2']);
+      assert(res.choices['3']);
+      done();
+    });
+  });
   test('authenticate', function(done) {
     client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
@@ -140,6 +139,43 @@ suite('Client API', function() {
   //     done();
   //   });
   // });
+  test('get contacts', function(done) {
+    client.emit('contacts', function(err, contacts) {
+      assert(!err);
+      assert(typeof contacts === 'object');
+      done();
+    });
+  });
+  test('add contact', function(done) {
+    client.emit('contacts', [{op: 'add', path: '/foo', value: {name: 'foo', ids: [
+      {type: 'username', value: config.username}
+    ]}}], function(err) {
+      assert(!err);
+      done();
+    });
+  });
+  test('get contacts, check exist', function(done) {
+    client.emit('contacts', function(err, contacts) {
+      assert(!err);
+      assert(typeof contacts === 'object');
+      assert(typeof contacts['foo'] === 'object');
+      done();
+    });
+  });
+  test('delete contact', function(done) {
+    client.emit('contacts', [{op: 'remove', path: '/foo'}], function(err) {
+      assert(!err);
+      done();
+    });
+  });
+  test('get contacts, check inexist', function(done) {
+    client.emit('contacts', function(err, contacts) {
+      assert(!err);
+      assert(typeof contacts === 'object');
+      assert(typeof contacts['foo'] === 'undefined');
+      done();
+    });
+  });
   test('presence', function(done) {
     client.emit('presence');
     done();

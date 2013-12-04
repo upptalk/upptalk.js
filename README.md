@@ -309,6 +309,40 @@ y.emit('phonenumbers', number, function(err, phonenumbers) {
 });
 ```
 ### Contacts
+##### Get contacts
+```javascript
+y.emit('contacts', function(err, contacts) {
+  console.log(err || contacts);
+});
+```
+##### Add contact
+```javascript
+var patch = [{
+  op: 'add',
+  path: '/id',
+  value: {
+    name: 'John Doe',
+    ids: [
+      {type: 'username', value: 'johndoe'}
+    ]
+  }
+}];
+y.emit('contacts', patch, function(err) {
+  if (err)
+    console.log(err);
+});
+```
+##### Remove contact
+```javascript
+var patch = [{
+  op: 'remove',
+  path: '/id'
+}];
+y.emit('contacts', patch, function(err) {
+  if (err)
+    console.log(err);
+});
+```
 ##### Sync contacts
 You can send a list of ids of different services and get associated upptalk username.
 ```javascript

@@ -14,7 +14,7 @@ module.exports = function(grunt) {
           'PhoneNumber.js/PhoneNumberNormalizer.js',
           'PhoneNumber.js/PhoneNumber.js',
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
-          'node_modules/request.js/lib/index.js',
+          'node_modules/request.js/lib/request.js',
           'node_modules/conducto/lib/utils.js',
           'node_modules/conducto/lib/Connection.js',
           'node_modules/conducto/lib/Client.js',

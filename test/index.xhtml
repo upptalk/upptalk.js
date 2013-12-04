@@ -10,7 +10,6 @@
     <script>
       mocha.setup('tdd');
       mocha.checkLeaks();
-      mocha.asyncOnly();
       mocha.bail();
       mocha.timeout(10000);
       document.addEventListener('DOMContentLoaded', function() {
