@@ -82,8 +82,7 @@ module.exports = function(grunt) {
     },
     githooks: {
       all: {
-        'pre-commit': 'syntax',
-        'pre-push': 'build'
+        'pre-commit': 'syntax'
       }
     }
   });
