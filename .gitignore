@@ -54,8 +54,6 @@ bower_components
 
 # Custom
 
-/yuilop.js
-/yuilop.min.js
 /test/config.js
 
 !.jshintrc
