@@ -1262,19 +1262,6 @@ var PhoneNumber = (function (dataBase) {
       message: 'Internal error.'
     }
   };
-  var build = function(data) {
-    var message = {};
-    if (data.id !== undefined)
-      message.id = data.id;
-    if (data.payload !== undefined)
-      message.payload = data.payload;
-    if (data.ns !== undefined)
-      message.namespace = data.ns;
-    if (data.error !== undefined)
-      message.error = data.error;
-    if (data.result !== undefined)
-      message.result = data.result;
-  };
   var error = function(type, details) {
     var error = {};
     error.code = errors[type].type;
@@ -1315,39 +1302,15 @@ var PhoneNumber = (function (dataBase) {
   }
 
   var Connection = function() {
+    this.notificationHandlers = {};
     this.requestHandlers = {};
     this.responseHandlers = {};
     this.eventEmitter  = new EventEmitter();
     this.lastId = 0;
+    this.stack = [];
     this.localEvents = ['close', 'send', 'error', 'open', 'message'];
   };
   var methods = {
-    addResponseHandler: function(id, callback) {
-      callback = callback.bind(this);
-      this.responseHandlers[id] = callback;
-      return callback;
-    },
-    getResponseHandler: function(id) {
-      return this.responseHandlers[id];
-    },
-    deleteResponseHandler: function(id) {
-      delete this.responseHandlers[id];
-    },
-    open: function(url) {
-      if (url)
-        this.url = url;
-      this.transport = new WebSocket(this.url);
-      this.transport.addEventListener('open', this.onOpen.bind(this));
-      this.transport.addEventListener('close', this.onClose.bind(this));
-      this.transport.addEventListener('error', this.onError.bind(this));
-      this.transport.addEventListener('message', this.onData.bind(this));
-    },
-    once: function(event, callback) {
-      this.eventEmitter.once(event, callback.bind(this));
-    },
-    on: function(event, callback) {
-      this.eventEmitter.on(event, callback.bind(this));
-    },
     isLocalEvent: function(event) {
       if (this.localEvents.indexOf(event) !== -1)
         return true;
@@ -1372,7 +1335,21 @@ var PhoneNumber = (function (dataBase) {
 
       this.transport.close();
     },
-    send: function(ns, payload, callback) {
+    once: function(event, callback) {
+      this.eventEmitter.once(event, callback.bind(this));
+    },
+    on: function(event, callback) {
+      this.eventEmitter.on(event, callback.bind(this));
+    },
+    //payload and callback are optional
+    emit: function(event, payload, callback) {
+      if (this.isLocalEvent(event))
+        return this.eventEmitter.emit(event, arguments[1]);
+
+
+      if (this.emitters && this.emitters[event])
+        return this.emitters[event](payload, callback);
+
       if (arguments[1]) {
         if (typeof arguments[1] === 'object') {
           payload = arguments[1];
@@ -1385,17 +1362,10 @@ var PhoneNumber = (function (dataBase) {
       }
 
       if (!callback)
-        this.notify(ns, payload);
+        this.notify(event, payload);
       else {
-        this.request(ns, payload, callback);
+        this.request(event, payload, callback);
       }
-    },
-    //payload and callback are optional
-    emit: function(ns, payload, callback) {
-      if (this.isLocalEvent(ns))
-        return this.eventEmitter.emit(ns, arguments[1]);
-
-      this.send(ns, payload, callback);
     },
     onData: function(string) {
       if (string.data)
@@ -1421,6 +1391,32 @@ var PhoneNumber = (function (dataBase) {
       else {
         this.onResponse(message);
       }
+      // if (stanza.method) {
+      //   var requestHandler = this.getRequestHandler(stanza.method);
+      //   var notificationHandler = this.getNotificationHandler(stanza.method);
+      //   if (requestHandler)
+      //     requestHandler()
+      //   if (this.server)
+      //     this.server.onMessage(stanza, this);
+      //   else {
+      //     this.test(this, stanza);
+      //   }
+      // }
+      // else {
+      //   if (this.server) {
+      //   }
+      //   else {
+      //     this.onResponse(stanza);
+      //   }
+      // }
+
+      // var type;
+      // if (typeof stanza.id === 'undefined')
+      //   this.onNotification(stanza);
+      // else if (typeof stanza.method !== 'undefined')
+      //   this.onRequest(stanza);
+      // else
+      //   this.onResponse(stanza);
     },
     notify: function(method, payload) {
       var notification = {
@@ -1430,16 +1426,15 @@ var PhoneNumber = (function (dataBase) {
         notification.payload = payload;
 
       this.sendMessage(notification);
-
-      return notification;
+    },
+    send: function(message) {
+      this.sendMessage(message);
     },
     sendMessage: function(message) {
       if (!this.transport)
         return; //FIXME do something?
-      if (this.state !== 1)
+      if (this.readyState !== 1)
         return; //FIXME do something?
-
-      // message = utils.build(message);
 
       message = serialize(message);
       if (message instanceof Error)
@@ -1448,12 +1443,37 @@ var PhoneNumber = (function (dataBase) {
       this.transport.send(message);
       this.emit('send', message);
     },
+    // onRequest: function(request) {
+    //   return;
+    //   // var handler = this.getRequestHandler(request.method);
+    //   // if (handler)
+    //   //   return handler(request);
+    //   // var middleware = this.server ? this.server.middlewares[request.method] : null;
+    //   // if (!middleware)
+    //   //   this.respond(request, {message: 'Method not found'});
+
+    //   // this.emit('request', request);
+    // },
     onResponse: function(response) {
       var handler = this.getResponseHandler(response.id);
       if (handler) {
         handler(response.error, response.result);
         this.deleteResponseHandler(response.id);
       }
+    },
+    // onNotification: function(notification) {
+    //   var handler = this.getNotificationHandler(notification.method);
+    //   if (handler)
+    //     return handler(notification.payload);
+    // },
+    sendRequest: function(request, callback) {
+      if (typeof request.id === 'undefined')
+        request.id = (this.lastId++).toString();
+
+      if (callback)
+        this.addResponseHandler(request.id, callback);
+
+      this.sendMessage(request);
     },
     request: function(method, payload, callback) {
       var request = {
@@ -1466,35 +1486,159 @@ var PhoneNumber = (function (dataBase) {
         request.payload = arguments[1];
         callback = arguments[2];
       }
-
-      request.id = (this.lastId++).toString();
-
-      if (callback)
-        this.addResponseHandler(request.id, callback);
-
-      this.sendMessage(request);
-
-      return request;
+      this.sendRequest(request, callback);
     },
     respond: function(request, error, result) {
       var response = {
-        id: typeof request === 'string' ? request : request.id
+        id: request.id
       };
 
       if (error !== null && error !== undefined)
         response.error = error;
-      else if (result !== 'undefined')
+      else if (typeof result !== 'undefined')
         response.result = result;
 
       this.sendMessage(response);
-
-      return response;
     },
+    //
+    //response handler
+    //
+    addResponseHandler: function(id, callback) {
+      this.responseHandlers[id] = callback.bind(this);
+    },
+    getResponseHandler: function(id) {
+      return this.responseHandlers[id];
+    },
+    deleteResponseHandler: function(id) {
+      delete this.responseHandlers[id];
+    },
+    //
+    // //request handler
+    // //
+    // addRequestHandler: function(method, handler) {
+    //   this.requestHandlers[method] = handler;
+    // },
+    // getRequestHandler: function(method) {
+    //   return this.requestHandlers[method];
+    // },
+    // deleteRequestHandler: function(method) {
+    //   delete this.requestHandlers[method];
+    // },
+    // //
+    // //notification handler
+    // //
+    // addNotificationHandler: function(method, handler) {
+    //   this.notificationHandlers[method] = handler.bind(this);
+    // },
+    // getNotificationHandler: function(method) {
+    //   return this.notificationHandlers[method];
+    // },
+    // deleteNotificationHandler: function(method) {
+    //   delete this.notificationHandlers[method];
+    // },
+    //
+    //methods - goodies
+    //
+    // use: function(middleware) {
+    //   this.stack.push(middleware);
+    // },
+    // test: function(client, message) {
+    //   var stack = this.stack;
+    //   var i = 0;
+
+    //   var req = {
+    //     client: client,
+    //     method: message.method,
+    //     payload: message.payload
+    //   };
+    //   var res;
+    //   var next;
+
+    //   //expect an answer
+    //   if (message.id) {
+    //     req.id = message.id;
+    //     var responded = false;
+
+    //     res = function(err, ok) {
+    //       if (responded)
+    //         throw new Error('A response to request ' + message.id + ' has already been sent.');
+
+    //       client.respond(message, err, ok);
+    //       responded = true;
+    //     };
+
+    //     next = function() {
+    //       var layer = stack[i++];
+    //       if (!layer) {
+    //         if (!responded)
+    //           client.respond(message, 'Method not found');
+
+    //         return;
+    //       }
+    //       // if (responded)
+    //       //   res = function(err, res) {
+    //       //     throw Error('Request already answered');
+    //       //   };
+
+    //       layer(req, res, next);
+    //     };
+
+    //   }
+    //   //doesn't expect an answer
+    //   else {
+    //     next = function() {
+    //       var layer = stack[i++];
+    //       if (!layer)
+    //         return;
+    //       else
+    //         layer(req, res, next);
+    //     };
+    //   }
+
+    //   next();
+    // },
+    // addEventHandler: function(name, handler) {
+    //   this.use(function(req, res, next) {
+    //     if (req.method !== name)
+    //       return next();
+
+    //     handler(req.payload, res, next);
+    //   });
+      // return;
+      // // if (!handler)
+      // //   this.addNotificationHandler(name)
+      // // return;
+
+
+      // var name;
+      // var handler;
+      // //{name, handler}
+      // if (arguments.length === 1) {
+      //   name = arguments[0].name;
+      //   handler = arguments[0].handler;
+      // }
+      // //name, handler
+      // else {
+      //   name = arguments[0];
+      //   handler = arguments[1];
+      // }
+
+      // if (handler)
+      //   handler = handler.bind(this);
+
+      // var that = this;
+      // this.addNotificationHandler(name, handler);
+      // this.addRequestHandler(name, function(request) {
+      //   handler(request.payload, function(err, res) {
+      //     that.respond(request, err, res);
+      //   })
+      // });
+    // }
   };
   for (var i in methods)
     Connection.prototype[i] = methods[i];
 
-  Object.defineProperty(Connection.prototype, 'state', {
+  Object.defineProperty(Connection.prototype, 'readyState', {
     get: function() {
       return this.transport ? this.transport.readyState : 3;
     }
@@ -1524,11 +1668,24 @@ var PhoneNumber = (function (dataBase) {
   var Client = function(url) {
     this.transport = null;
     this.url = url;
+    this.emitters = {};
     Connection.call(this);
   };
   Client.prototype = new Connection();
 
   var methods = {
+    open: function(url) {
+      if (url)
+        this.url = url;
+      this.transport = new WebSocket(this.url);
+      this.transport.addEventListener('open', this.onOpen.bind(this));
+      this.transport.addEventListener('close', this.onClose.bind(this));
+      this.transport.addEventListener('error', this.onError.bind(this));
+      this.transport.addEventListener('message', this.onData.bind(this));
+    },
+    defineEmitter: function(name, callback) {
+      this.emitters[name] = callback.bind(this);
+    }
   };
 
   for (var i in methods)

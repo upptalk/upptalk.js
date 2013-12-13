@@ -17,7 +17,7 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "conducto": "git+https://github.com/conducto/conducto.git",
+    "conducto": "~0.0.1",
     "request.js": "~0.0.5"
   },
   "devDependencies": {
