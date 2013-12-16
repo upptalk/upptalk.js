@@ -417,7 +417,7 @@ y.emit('groups', function(err, groups) {
 ```
 ##### Get group members
 ```javascript
-y.emit('members', {group: id}, function(err, member) {
+y.emit('group:members', group, function(err, members) {
   //members is an array
   for (var i = 0; i < members.length; i++) {
     console.log('member user id :' members[i].user);
