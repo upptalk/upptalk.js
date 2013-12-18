@@ -1769,51 +1769,12 @@ var PhoneNumber = (function (dataBase) {
       this.HTTPRequest({method: 'post', path: '/media', body: file}, callback, progress);
     },
     captcha: function(callback) {
-      this.HTTPRequest({method: 'get', path: '/captcha', auth: false}, callback);
-    },
-    contacts: function() {
-      var data;
-      var callback;
-      var that = this;
-      if (typeof arguments[0] === 'function')
-        callback = arguments[0];
-      else if (typeof arguments[1] === 'function') {
-        data = arguments[0];
-        callback = arguments[1];
-      }
+      this.HTTPRequest({method: 'get', path: '/captcha', auth: false}, function(err, body) {
+        if (err)
+          return callback({message: 'Internal client error'});
 
-      if (!data) {
-        this.HTTPRequest({method: 'get', path: '/storage/devices/web'}, function(err, device) {
-          if (err || typeof device !== 'object' || typeof device.contacts !== 'object') {
-            that.HTTPRequest({method: 'put', path: '/storage/devices/web', body: {contacts: {}}}, function(err) {
-              if (err)
-                callback(err);
-              else
-                callback(null, {});
-            });
-          }
-          else
-            callback(null, device.contacts);
-        });
-      }
-      else if (Array.isArray(data)) {
-        data.forEach(function(patch) {
-          patch.path = '/contacts' + patch.path;
-        });
-        this.HTTPRequest({
-          method: 'patch',
-          path: '/storage/devices/web',
-          body: data,
-          headers: {'Content-Type': 'application/json+patch'}
-        }, callback);
-      }
-      else if (typeof data === 'object') {
-        this.HTTPRequest({
-          method: 'put',
-          path: '/storage/devices/web',
-          body: {contacts: data}
-        }, callback);
-      }
+        callback(body.error, body.result);
+      });
     },
   };
 
