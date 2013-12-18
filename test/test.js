@@ -125,9 +125,31 @@ suite('Client API', function() {
       done();
     });
   });
+  test('options enable XMPP forwarding', function(done) {
+    client.emit('options', {xmpp: true}, function(err, res) {
+      assert(err === undefined);
+      assert(res === undefined);
+      done();
+    });
+  });
   test('authenticate', function(done) {
     client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
+      done();
+    });
+  });
+  test('send xmpp stanza', function(done) {
+    var stanza = '<iq id="foo" type="get"><ping xmlns="urn:xmpp:ping"/></iq>';
+    client.on('xmpp:out', function(p) {
+      if (p === stanza)
+        done();
+    });
+    client.emit('xmpp', stanza);
+  });
+  test('disable xmpp forwarding', function(done) {
+    client.emit('options', {xmpp: false}, function(err, res) {
+      assert(err === undefined);
+      assert(res === undefined);
       done();
     });
   });
