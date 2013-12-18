@@ -382,6 +382,7 @@ y.emit('group:name', {group: 'group', name: 'name'}, function(err) {
 });
 ```
 ##### Invite user to join group
+Only a group owner can send an invitation.
 ```javascript
 var invitation = {group: 'group', user: 'username'};
 y.emit('group:invite', invitation, function(err) {
