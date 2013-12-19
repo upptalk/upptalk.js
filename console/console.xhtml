@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>yuilop.js browser example</title>
+    <title>yuilop.js console</title>
     <meta charset="UTF-8"/>
     <link type="text/css" rel="stylesheet" href="console.css"/>
     <script type="application/javascript" src="../yuilop.js"/>
@@ -9,11 +9,19 @@
   </head>
   <body>
     <div id="header">
-      <p>Status: <span id="status">close</span></p>
+      <form id="connect">
+        <input type="text" required="required" name="hostname" placeholder="happy.dev.ym.ms" value="happy.dev.ym.ms"/>
+        <input type="text" required="required" name="port" placeholder="443" value="443"/>
+        <input type="checkbox" required="required" name="secure" checked="checked"/>
+        <input type="text" name="username" placeholder="username"/>
+        <input type="password" name="password" placeholder="password"/>
+        <input type="submit" value="connect"/>
+      </form>
+      <p>Status: <span id="status">closed</span></p>
     </div>
     <form id="input">
       <textarea name="data"/>
-      <input type="submit"/>
+      <input type="submit" value="send"/>
     </form>
     <div id="console"/>
     <div id="logs"/>
