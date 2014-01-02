@@ -1097,12 +1097,6 @@ var PhoneNumber = (function (dataBase) {
 
   'use strict';
 
-  var jsonHack = (function() {
-    var xhr = new XMLHttpRequest();
-    xhr.responseType = 'json';
-    return xhr.responseType !== 'json';
-  })();
-
   var request = function(options, callback, progress) {
     if (typeof options === 'string')
       options = {url: options};
@@ -1116,7 +1110,8 @@ var PhoneNumber = (function (dataBase) {
       options.responseType = 'blob';
 
     var req = new XMLHttpRequest();
-    var type, isJson;
+    var type;
+    var parse = false;
 
     callback.bind(req);
 
@@ -1138,8 +1133,12 @@ var PhoneNumber = (function (dataBase) {
           return;
 
         if (type.indexOf('application/json') === 0) {
-          req.responseType = jsonHack ? 'text' : 'json';
-          isJson = true;
+          try {
+            req.responseType = 'json';
+          }
+          catch (e) {
+            parse = true;
+          }
         }
         else if (type.indexOf('text/') === 0)
           req.responseType = 'text';
@@ -1149,7 +1148,7 @@ var PhoneNumber = (function (dataBase) {
         if (this.status.toString()[0] !== '2')
           err = {status: this.status};
 
-        var response = jsonHack && isJson ? JSON.parse(this.responseText) : this.response;
+        var response = parse ? JSON.parse(this.response) : this.response;
         return callback(err || undefined, response);
       }
     });
