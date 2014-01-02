@@ -301,12 +301,22 @@ suite('Client API', function() {
     //   if (++c === 2)
     //     done();
     // });
-    client.emit('chat', {user: config.username, receipt: true, id: 'test42', text: 'hello'});
+    client.emit('chat', {user: config.username, id: 'test42', text: 'hello'});
+  });
+  test('chat message to other', function(done) {
+    client.once('receipt', function(payload) {
+      if (payload.id !== 'test43')
+        return;
+
+      // if (++c === 2)
+      done();
+    });
+    client.emit('chat', {user: 'sonnyp10', id: 'test43', text: 'hello'});
   });
   test('chat message to number', function(done) {
     var c = 0;
     client.once('receipt', function(payload) {
-      if (payload.id !== 'test43')
+      if (payload.id !== 'test44')
         return;
 
       if (payload.type === 'error')
@@ -322,7 +332,7 @@ suite('Client API', function() {
       if (++c === 2)
         done();
     });
-    client.emit('chat', {number: '+33651090039', receipt: true, id: 'test43', text: 'hello'});
+    client.emit('chat', {number: '+33651090039', id: 'test44', text: 'hello'});
   });
   test('set profile', function(done) {
     client.emit('profile', profile, function(err, res) {
