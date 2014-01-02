@@ -1286,29 +1286,43 @@ var PhoneNumber = (function (dataBase) {
   var parse;
   var serialize;
   var error;
+  var inherits;
 
   if (typeof window !== 'undefined') {
     EventEmitter = window.EventEmitter;
     parse = window.conducto.parse;
     serialize = window.conducto.serialize;
     error = window.conducto.error;
+    //https://github.com/joyent/node/blob/master/lib/util.js#L558
+    inherits = function(ctor, superCtor) {
+      ctor.super_ = superCtor;
+      ctor.prototype = Object.create(superCtor.prototype, {
+        constructor: {
+          value: ctor,
+          enumerable: false,
+          writable: true,
+          configurable: true
+        }
+      });
+    };
   }
   else {
     var utils = require('./utils');
     parse = utils.parse;
     serialize = utils.serialize;
     EventEmitter = require('events').EventEmitter;
+    inherits = require('util').inherits;
   }
 
   var Connection = function() {
     this.notificationHandlers = {};
     this.requestHandlers = {};
     this.responseHandlers = {};
-    this.eventEmitter  = new EventEmitter();
+    EventEmitter.call(this);
     this.lastId = 0;
     this.stack = [];
-    this.localEvents = ['close', 'send', 'error', 'open', 'message'];
   };
+  inherits(Connection, EventEmitter);
   var methods = {
     isLocalEvent: function(event) {
       if (this.localEvents.indexOf(event) !== -1)
@@ -1329,42 +1343,10 @@ var PhoneNumber = (function (dataBase) {
       this.emit('close');
     },
     close: function() {
-      if (!this.transport)
-        return; //FIXME do something?
+      if (!this.transport || this.transport.readyState !== 3)
+        return this.onClose();
 
       this.transport.close();
-    },
-    once: function(event, callback) {
-      this.eventEmitter.once(event, callback.bind(this));
-    },
-    on: function(event, callback) {
-      this.eventEmitter.on(event, callback.bind(this));
-    },
-    //payload and callback are optional
-    emit: function(event, payload, callback) {
-      if (this.isLocalEvent(event))
-        return this.eventEmitter.emit(event, arguments[1]);
-
-
-      if (this.emitters && this.emitters[event])
-        return this.emitters[event](payload, callback);
-
-      if (arguments[1]) {
-        if (typeof arguments[1] === 'object') {
-          payload = arguments[1];
-        }
-        else if (typeof arguments[1] === 'function')
-          callback = arguments[1];
-      }
-      if (arguments[2] && typeof arguments[2] === 'function') {
-        callback = arguments[2];
-      }
-
-      if (!callback)
-        this.notify(event, payload);
-      else {
-        this.request(event, payload, callback);
-      }
     },
     onData: function(string) {
       if (string.data)
@@ -1385,7 +1367,7 @@ var PhoneNumber = (function (dataBase) {
       this.emit('message', message);
 
       if (message.method) {
-        this.eventEmitter.emit(message.method, message.payload);
+        this.emit(message.method, message.payload);
       }
       else {
         this.onResponse(message);
@@ -1426,8 +1408,36 @@ var PhoneNumber = (function (dataBase) {
 
       this.sendMessage(notification);
     },
-    send: function(message) {
-      this.sendMessage(message);
+    send: function() {
+      if (typeof arguments[0] === 'object') {
+        if (typeof arguments[1] === 'function')
+          this.sendRequest(arguments[0], arguments[1]);
+        else
+          this.sendMessage(arguments[0]);
+
+        return;
+      }
+
+      var event = arguments[0];
+
+      if (this.emitters && this.emitters[event])
+        return this.emitters[event].apply(this, Array.prototype.slice.call(arguments, 1));
+
+      var payload;
+      var callback;
+      if (typeof arguments[1] === 'function')
+        callback = arguments[1];
+      else if (typeof arguments[1] !== 'undefined') {
+        payload = arguments[1];
+        if (typeof arguments[2] === 'function')
+          callback = arguments[2];
+      }
+
+      if (!callback)
+        this.notify(event, payload);
+      else {
+        this.request(event, payload, callback);
+      }
     },
     sendMessage: function(message) {
       if (!this.transport)
@@ -1681,9 +1691,31 @@ var PhoneNumber = (function (dataBase) {
       this.transport.addEventListener('close', this.onClose.bind(this));
       this.transport.addEventListener('error', this.onError.bind(this));
       this.transport.addEventListener('message', this.onData.bind(this));
+
+      this.on('message', this.pingpong);
+      this.on('close', (function() {
+        this.removeListener('message', this.pingpong);
+      }).bind(this));
     },
     defineEmitter: function(name, callback) {
       this.emitters[name] = callback.bind(this);
+    },
+    pingpong: function() {
+      if (this.pingTimeout)
+        clearTimeout(this.pingTimeout);
+
+      var that = this;
+
+      this.pingTimeout = setTimeout(function() {
+        var now = Date.now();
+        var then;
+        var pong = setTimeout(function() {
+          that.close();
+        }, 2500);
+        that.send('ping', function() {
+          clearTimeout(pong);
+        });
+      }, 5000);
     }
   };
 

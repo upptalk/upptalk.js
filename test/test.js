@@ -84,21 +84,21 @@ suite('Client API', function() {
     client.once('open', done);
   });
   test('ping', function(done) {
-    client.emit('ping', function(err, res) {
+    client.send('ping', function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
       done();
     });
   });
   test('register:available false', function(done) {
-    client.emit('register:available', config.username, function(err, res) {
+    client.send('register:available', config.username, function(err, res) {
       assert(!err);
       assert(res === false);
       done();
     });
   });
   test('register:available true', function(done) {
-    client.emit('register:available', Math.random().toString(), function(err, res) {
+    client.send('register:available', Math.random().toString(), function(err, res) {
       assert(!err);
       assert(res === true);
       done();
@@ -108,12 +108,12 @@ suite('Client API', function() {
   //   var register = {
 
   //   };
-  //   client.emit('register', register, function() {
+  //   client.send('register', register, function() {
   //     console.log(arguments);
   //   });
   // });
   test('captcha', function(done) {
-    client.emit('captcha', function(err, res) {
+    client.send('captcha', function(err, res) {
       assert(!err);
       assert(typeof res === 'object');
       assert(typeof res.token === 'string');
@@ -126,14 +126,14 @@ suite('Client API', function() {
     });
   });
   test('options enable XMPP forwarding', function(done) {
-    client.emit('options', {xmpp: true}, function(err, res) {
+    client.send('options', {xmpp: true}, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
       done();
     });
   });
   test('authenticate', function(done) {
-    client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
+    client.send('authenticate', {username: config.username, password: config.password}, function(err) {
       assert(err === undefined);
       done();
     });
@@ -144,10 +144,10 @@ suite('Client API', function() {
       if (p === stanza)
         done();
     });
-    client.emit('xmpp', stanza);
+    client.send('xmpp', stanza);
   });
   test('disable xmpp forwarding', function(done) {
-    client.emit('options', {xmpp: false}, function(err, res) {
+    client.send('options', {xmpp: false}, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
       done();
@@ -155,21 +155,21 @@ suite('Client API', function() {
   });
   //FIXME fix needed for w3c-xmlhttprequest
   // test('upload', function(done) {
-  //   client.emit('upload', 'hello', function(err, res) {
+  //   client.send('upload', 'hello', function(err, res) {
   //     assert(!err);
   //     console.log(res)
   //     done();
   //   });
   // });
   test('get contacts', function(done) {
-    client.emit('contacts', function(err, contacts) {
+    client.send('contacts', function(err, contacts) {
       assert(!err);
       assert(typeof contacts === 'object');
       done();
     });
   });
   test('add contact', function(done) {
-    client.emit('contacts', [{op: 'add', path: '/foo', value: {name: 'foo', ids: [
+    client.send('contacts', [{op: 'add', path: '/foo', value: {name: 'foo', ids: [
       {type: 'username', value: config.username}
     ]}}], function(err) {
       assert(!err);
@@ -177,7 +177,7 @@ suite('Client API', function() {
     });
   });
   test('get contacts, check exist', function(done) {
-    client.emit('contacts', function(err, contacts) {
+    client.send('contacts', function(err, contacts) {
       assert(!err);
       assert(typeof contacts === 'object');
       assert(typeof contacts['foo'] === 'object');
@@ -185,13 +185,13 @@ suite('Client API', function() {
     });
   });
   test('delete contact', function(done) {
-    client.emit('contacts', [{op: 'remove', path: '/foo'}], function(err) {
+    client.send('contacts', [{op: 'remove', path: '/foo'}], function(err) {
       assert(!err);
       done();
     });
   });
   test('get contacts, check inexist', function(done) {
-    client.emit('contacts', function(err, contacts) {
+    client.send('contacts', function(err, contacts) {
       assert(!err);
       assert(typeof contacts === 'object');
       assert(typeof contacts['foo'] === 'undefined');
@@ -199,18 +199,18 @@ suite('Client API', function() {
     });
   });
   test('presence', function(done) {
-    client.emit('presence');
+    client.send('presence');
     done();
   });
   test('energy', function(done) {
-    client.emit('energy', function(err, energy) {
+    client.send('energy', function(err, energy) {
       assert(err === undefined);
       assert(energy);
       done();
     });
   });
   test('remaining', function(done) {
-    client.emit('remaining', function(err, remaining) {
+    client.send('remaining', function(err, remaining) {
       assert(err === undefined);
       assert(isObject(remaining));
       assert(typeof remaining.voice === 'number');
@@ -219,20 +219,20 @@ suite('Client API', function() {
     });
   });
   test('group', function(done) {
-    client.emit('group', function(err, res) {
+    client.send('group', function(err, res) {
       assert(typeof res === 'string');
       group = res;
       done();
     });
   });
   test('group:name', function(done) {
-    client.emit('group:name', {group: group, name: 'foo'}, function(err) {
+    client.send('group:name', {group: group, name: 'foo'}, function(err) {
       assert(!err);
       done();
     });
   });
   test('groups', function(done) {
-    client.emit('groups', function(err, res) {
+    client.send('groups', function(err, res) {
       groups = res;
       assert(!err);
       assert(isArray(groups));
@@ -242,7 +242,7 @@ suite('Client API', function() {
           gc = groups[i];
         }
         else {
-          client.emit('group:leave', groups[i].id);
+          client.send('group:leave', groups[i].id);
         }
       }
       assert(typeof gc === 'object');
@@ -251,14 +251,14 @@ suite('Client API', function() {
     });
   });
   test('group:members', function(done) {
-    client.emit('group:members', group, function(err, members) {
+    client.send('group:members', group, function(err, members) {
       assert(!err);
       assert(isArray(members));
       done();
     });
   });
   test('group:leave', function() {
-    client.emit('group:leave', group);
+    client.send('group:leave', group);
   });
   test('sync', function(done) {
     var sync = {
@@ -267,7 +267,7 @@ suite('Client API', function() {
       // gplus: 'test'
       // twitter: Math.random().toString()
     };
-    client.emit('sync', sync, function(err, synced) {
+    client.send('sync', sync, function(err, synced) {
       assert(!err);
       for (var i in sync)
         assert(synced[i]);
@@ -275,7 +275,7 @@ suite('Client API', function() {
     });
   });
   test('last-activity', function(done) {
-    client.emit('last-activity', config.username, function(err, lastActivity) {
+    client.send('last-activity', config.username, function(err, lastActivity) {
       assert(!err);
       assert(lastActivity);
       done();
@@ -301,7 +301,7 @@ suite('Client API', function() {
     //   if (++c === 2)
     //     done();
     // });
-    client.emit('chat', {user: config.username, id: 'test42', text: 'hello'});
+    client.send('chat', {user: config.username, id: 'test42', text: 'hello'});
   });
   test('chat message to other', function(done) {
     client.once('receipt', function(payload) {
@@ -311,7 +311,7 @@ suite('Client API', function() {
       // if (++c === 2)
       done();
     });
-    client.emit('chat', {user: 'sonnyp10', id: 'test43', text: 'hello'});
+    client.send('chat', {user: 'sonnyp10', id: 'test43', text: 'hello'});
   });
   test('chat message to number', function(done) {
     var c = 0;
@@ -332,17 +332,17 @@ suite('Client API', function() {
       if (++c === 2)
         done();
     });
-    client.emit('chat', {number: '+33651090039', id: 'test44', text: 'hello'});
+    client.send('chat', {number: '+33651090039', id: 'test44', text: 'hello'});
   });
   test('set profile', function(done) {
-    client.emit('profile', profile, function(err, res) {
+    client.send('profile', profile, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
       done();
     });
   });
   test('get own profile', function(done) {
-    client.emit('profile', function(err, res) {
+    client.send('profile', function(err, res) {
       assert(!err);
       for (var i in profile)
         assert(profile[i] === res[i]);
@@ -350,7 +350,7 @@ suite('Client API', function() {
     });
   });
   test('get profile of contact', function(done) {
-    client.emit('profile', 'sonnypiers8', function(err, res) {
+    client.send('profile', 'sonnypiers8', function(err, res) {
       assert(!err);
       for (var i in res)
         assert(profile[i] === res[i]);
@@ -358,7 +358,7 @@ suite('Client API', function() {
     });
   });
   test('change password', function(done) {
-    client.emit('password', config.password, function(err, res) {
+    client.send('password', config.password, function(err, res) {
       assert(err === undefined);
       assert(res === undefined);
     });

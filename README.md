@@ -51,22 +51,22 @@ Close the connection.
 y.close();
 ```
 
-### emit
-Emit an event
+### send
+Send an event or a request
 
 If an answer from the server is expected:
 ```javascript
-y.emit('event', payload, function(err, res) {
+y.send('event', payload, function(err, res) {
   console.log(err || res);
 });
 ```
 Otherwise
 ```javascript
-y.emit('event', payload);
+y.send('event', payload);
 ```
 
 ### on
-Listen for a event.
+Listen for an event.
 ```javascript
 y.on('echo', function(payload, res, next) {
   var err;
@@ -133,7 +133,7 @@ y.on('close', function() {
 ### User
 ##### Register
 ```javascript
-y.emit('captcha', function(err, captcha) {
+y.send('captcha', function(err, captcha) {
   //captcha object is similar to {
   //  "token": "TOKEN",
   //  "question": "Where is the heart?",
@@ -155,26 +155,26 @@ var payload = {
   lang:     '', //ISO lang code e.g. es
   token:    '', //the captcha token
 };
-y.emit('register', payload, function(err) {
+y.send('register', payload, function(err) {
   console.log(err);
 });
 ```
 ##### Authenticate
 ```javascript
-y.emit('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
+y.send('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
   console.log(err);
 });
 ```
 ##### Change password
 ```javascript
-y.emit('password', password, function(err) {
+y.send('password', password, function(err) {
   console.log(err);
 });
 ```
 If the password was succefully changed, (no error) the server will close the connection, you'll have to open it again and authenticate again with the new password.
 ##### Reset password
 ```javascript
-y.emit('password:reset', EMAIL, function(err) {
+y.send('password:reset', EMAIL, function(err) {
   console.log(err);
 });
 ```
@@ -191,20 +191,20 @@ var profile = {
   region: 'US-AL',
   country: 'US'
 };
-y.emit('profile', profile, function(err) {
+y.send('profile', profile, function(err) {
   if (err)
     return console.log(err);
 });
 ```
 ##### Get profile
 ```javascript
-y.emit('profile', function(err, profile) {
+y.send('profile', function(err, profile) {
   //profile is a profile object as described below
 });
 ```
 ##### Get user profile
 ```javascript
-y.emit('profile', username, function(err, profile) {
+y.send('profile', username, function(err, profile) {
   //profile is a profile object as described below
 });
 ```
@@ -222,7 +222,7 @@ var presence = {
   type: //'online' or 'offline'
 };
 //if data is omited, {type: 'online'} is assumed.
-y.emit('presence'[, data]);
+y.send('presence'[, data]);
 ```
 ### Energy
 ##### Listen for energy events
@@ -235,9 +235,9 @@ y.on('energy', function(energy) {
 });
 ```
 ##### Get energy left
-You can request energy left to the server be emitting an energy event.
+You can request energy left to the server be sendting an energy event.
 ```javascript
-y.emit('energy', function(err, energy) {
+y.send('energy', function(err, energy) {
   console.log(energy);
   //'123.53'
 });
@@ -245,7 +245,7 @@ y.emit('energy', function(err, energy) {
 ##### Get remaining SMS/minutes
 ```javascript
 //if number is omited, user number is assumed
-y.emit('remaining', [number,] function(err, energy) {
+y.send('remaining', [number,] function(err, energy) {
   //energy.sms is the number of SMS left for the given number
   //energy.voice is the number of seconds left for the given number
   //both of them are a number or 'unlimited'
@@ -265,11 +265,11 @@ var receipt = {
   id: //message id,
   type: //'received' or 'read'
 }
-y.emit('receipt', receipt);
+y.send('receipt', receipt);
 ```
 ### Upload
 ```javascript
-y.emit('upload', File, function(err, res) {
+y.send('upload', File, function(err, res) {
 
 });
 ```
@@ -287,12 +287,12 @@ var chatstate = {
   type: //either 'composing' or 'paused',
   user: //username
 }
-y.emit('chatstate', chatstate);
+y.send('chatstate', chatstate);
 ```
 ### Last activity
 ##### Get last activity
 ```javascript
-y.emit('last-activity', username, function(err, lastActivity) {
+y.send('last-activity', username, function(err, lastActivity) {
   //lastActivity is a string of seconds since user's last activity
 });
 ```
@@ -300,7 +300,7 @@ y.emit('last-activity', username, function(err, lastActivity) {
 ##### Get associated phone numbers for a number
 ```javascript
 //Number must be a E164 formated phone number
-y.emit('phonenumbers', number, function(err, phonenumbers) {
+y.send('phonenumbers', number, function(err, phonenumbers) {
   //phonenumbers.real is the real user phone number
   //phonenumbers.yuilop is the useryuilop + number
 
@@ -311,7 +311,7 @@ y.emit('phonenumbers', number, function(err, phonenumbers) {
 ### Contacts
 ##### Get contacts
 ```javascript
-y.emit('contacts', function(err, contacts) {
+y.send('contacts', function(err, contacts) {
   console.log(err || contacts);
 });
 ```
@@ -327,7 +327,7 @@ var patch = [{
     ]
   }
 }];
-y.emit('contacts', patch, function(err) {
+y.send('contacts', patch, function(err) {
   if (err)
     console.log(err);
 });
@@ -338,7 +338,7 @@ var patch = [{
   op: 'remove',
   path: '/id'
 }];
-y.emit('contacts', patch, function(err) {
+y.send('contacts', patch, function(err) {
   if (err)
     console.log(err);
 });
@@ -372,31 +372,31 @@ y.on('sync', sync, function(err, synced) {
 ### Groupchats
 ##### Create group
 ```javascript
-y.emit('group', function(err, id) {
+y.send('group', function(err, id) {
 	//id is the id of the newly created group
 });
 ```
 ##### Name/rename group
 ```javascript
-y.emit('group:name', {group: 'group', name: 'name'}, function(err) {
+y.send('group:name', {group: 'group', name: 'name'}, function(err) {
 });
 ```
 ##### Invite user to join group
 Only a group owner can send an invitation.
 ```javascript
 var invitation = {group: 'group', user: 'username'};
-y.emit('group:invite', invitation, function(err) {
+y.send('group:invite', invitation, function(err) {
 });
 ```
 ##### Kick user from group
 ```javascript
 var kick = {group: 'group', user: 'username'};
-y.emit('group:kick', kick, function(err) {
+y.send('group:kick', kick, function(err) {
 });
 ```
 ##### Leave group
 ```javascript
-y.emit('group:leave', 'group', function(err) {
+y.send('group:leave', 'group', function(err) {
 });
 ```
 ##### Listen group
@@ -408,7 +408,7 @@ y.on('group', function(err, group) {
 ```
 ##### Get groups
 ```javascript
-y.emit('groups', function(err, groups) {
+y.send('groups', function(err, groups) {
   //groups is an array of group objects
   for (var i = 0; i < groups.length; i++) {
     console.log('group id :' groups[i].id);
@@ -418,7 +418,7 @@ y.emit('groups', function(err, groups) {
 ```
 ##### Get group members
 ```javascript
-y.emit('group:members', group, function(err, members) {
+y.send('group:members', group, function(err, members) {
   //members is an array
   for (var i = 0; i < members.length; i++) {
     console.log('member user id :' members[i].user);
@@ -429,7 +429,7 @@ y.emit('group:members', group, function(err, members) {
 ### Message
 ##### Upload a file
 ```javascript
-y.emit('upload', file,
+y.send('upload', file,
   //when request completes
   function(err, result) {
   },
@@ -490,7 +490,7 @@ message.location = {
   }
 };
 
-y.emit('chat', message);
+y.send('chat', message);
 ```
 ### Storage
 ##### Listen storage FIXME
@@ -500,7 +500,7 @@ y.on('storage', function(storage) {
 ```
 ##### Get storage
 ```javascript
-y.emit('storage', function(err, storage) {
+y.send('storage', function(err, storage) {
 
 });
 ```
