@@ -1,7 +1,7 @@
 {
   "name": "yuilop.js",
   "description": "yuilop client JavaScript library",
-  "version": "0.4.0",
+  "version": "0.5.1",
   "author": "Sonny Piers <sonny@yuilop.com>",
   "main": "lib/index.js",
   "homepage": "https://github.com/yuilop/yuilop.js",
@@ -17,20 +17,20 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "conducto": "~0.0.1",
-    "request.js": "~0.0.5"
+    "conducto": "~0.0.2",
+    "request.js": "~0.0.6"
   },
   "devDependencies": {
-    "wolfy87-eventemitter": "~4.2.4",
-    "mocha": "~1.12.0",
-    "grunt": "~0.4.1",
-    "grunt-contrib-uglify": "~0.2.0",
+    "wolfy87-eventemitter": "~4.2.6",
+    "mocha": "~1.16.2",
+    "grunt": "~0.4.2",
+    "grunt-contrib-uglify": "~0.2.7",
     "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-concat": "~0.2.0",
+    "grunt-contrib-concat": "~0.3.0",
     "grunt-jsvalidate": "~0.2.2",
-    "grunt-contrib-jshint": "~0.7.0",
-    "grunt-mocha-test": "~0.7.0",
+    "grunt-contrib-jshint": "~0.8.0",
+    "grunt-mocha-test": "~0.8.1",
     "grunt-contrib-watch": "~0.5.3",
-    "grunt-githooks": "~0.3.0"
+    "grunt-githooks": "~0.3.1"
   }
 }
