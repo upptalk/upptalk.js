@@ -631,7 +631,7 @@ var PhoneNumber = (function (dataBase) {
 })(PHONE_NUMBER_META_DATA);
 
 /*!
- * EventEmitter v4.2.4 - git.io/ee
+ * EventEmitter v4.2.6 - git.io/ee
  * Oliver Caldwell
  * MIT license
  * @preserve
@@ -649,9 +649,9 @@ var PhoneNumber = (function (dataBase) {
 	function EventEmitter() {}
 
 	// Shortcuts to improve speed and size
-
-	// Easy access to the prototype
 	var proto = EventEmitter.prototype;
+	var exports = this;
+	var originalGlobalValue = exports.EventEmitter;
 
 	/**
 	 * Finds the index of the listener for the event in it's storage array.
@@ -1079,6 +1079,16 @@ var PhoneNumber = (function (dataBase) {
 		return this._events || (this._events = {});
 	};
 
+	/**
+	 * Reverts the global {@link EventEmitter} to its previous value and returns a reference to this version.
+	 *
+	 * @return {Function} Non conflicting EventEmitter class.
+	 */
+	EventEmitter.noConflict = function noConflict() {
+		exports.EventEmitter = originalGlobalValue;
+		return EventEmitter;
+	};
+
 	// Expose the class either via AMD, CommonJS or the global object
 	if (typeof define === 'function' && define.amd) {
 		define(function () {
@@ -1136,9 +1146,10 @@ var PhoneNumber = (function (dataBase) {
           try {
             req.responseType = 'json';
           }
-          catch (e) {
+          catch (e) {}
+          //chrome < 30 doesn't throw exception
+          if (req.responseType !== 'json')
             parse = true;
-          }
         }
         else if (type.indexOf('text/') === 0)
           req.responseType = 'text';
@@ -1678,6 +1689,8 @@ var PhoneNumber = (function (dataBase) {
     this.transport = null;
     this.url = url;
     this.emitters = {};
+    this.keepalive = 5000;
+    this.timeout = 2500;
     Connection.call(this);
   };
   Client.prototype = new Connection();
@@ -1693,9 +1706,9 @@ var PhoneNumber = (function (dataBase) {
       this.transport.addEventListener('message', this.onData.bind(this));
 
       this.on('message', this.pingpong);
-      this.on('close', (function() {
+      this.once('close', function() {
         this.removeListener('message', this.pingpong);
-      }).bind(this));
+      });
     },
     defineEmitter: function(name, callback) {
       this.emitters[name] = callback.bind(this);
@@ -1707,15 +1720,13 @@ var PhoneNumber = (function (dataBase) {
       var that = this;
 
       this.pingTimeout = setTimeout(function() {
-        var now = Date.now();
-        var then;
         var pong = setTimeout(function() {
           that.close();
-        }, 2500);
+        }, that.timeout);
         that.send('ping', function() {
           clearTimeout(pong);
         });
-      }, 5000);
+      }, this.keepalive);
     }
   };
 
