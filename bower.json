@@ -1,0 +1,12 @@
+{
+  "name": "yuilop.js",
+  "version": "0.5.2",
+  "homepage": "https://github.com/yuilop/yuilop.js",
+  "authors": [
+    "Sonny Piers <sonny@yuilop.com>"
+  ],
+  "description": "yuilop client JavaScript library",
+  "main": "yuilop.js",
+  "private": true,
+  "dependencies": {}
+}
