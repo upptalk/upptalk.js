@@ -511,6 +511,6 @@ yuilop.is includes a keepalive system. If no message has been received since 5 s
 
 The interval and timeout are configurable before opening the connection.
 ```javascript
-y.interval = 10;
+y.keepalive = 10;
 y.timeout = 5;
 ```
