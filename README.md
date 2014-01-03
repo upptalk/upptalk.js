@@ -21,7 +21,11 @@ var Y = require('yuilop.js');
 ```
 ###Browser
 ```xml
-<script src="node_modules/yuilop.js/yuilop.js"></script>
+<script src="yuilop.js/yuilop.js"></script>
+```
+For minified version
+```xml
+<script src="yuilop.js/yuilop.min.js"></script>
 ```
 
 ## API
@@ -52,15 +56,13 @@ y.close();
 ```
 
 ### send
-Send an event or a request
-
-If an answer from the server is expected:
+Request
 ```javascript
 y.send('event', payload, function(err, res) {
   console.log(err || res);
 });
 ```
-Otherwise
+Event
 ```javascript
 y.send('event', payload);
 ```
@@ -68,18 +70,15 @@ y.send('event', payload);
 ### on
 Listen for an event.
 ```javascript
-y.on('echo', function(payload, res, next) {
-  var err;
-  var ok;
-  if (typeof payload === 'undefined')
-    err = 'Payload must be set to be echoed';
-  else
-    ok = payload;
-
-  if (res) //server expects an answer
-    res(err, ok);
-
-  next();
+y.on('event', function(payload) {
+  console.log(payload);
+});
+```
+### once
+Listen for an event once (one time only).
+```javascript
+y.once('event', function(payload) {
+  console.log(payload);
 });
 ```
 
@@ -503,4 +502,15 @@ y.on('storage', function(storage) {
 y.send('storage', function(err, storage) {
 
 });
+```
+
+## Miscellaneous
+
+### Keepalive
+yuilop.is includes a keepalive system. If no message has been received since 5 seconds, a ping will be sent to the server. If no pong has been received within 2.5 seconds, a close event will be emitted.
+
+The interval and timeout are configurable before opening the connection.
+```javascript
+y.interval = 10;
+y.timeout = 5;
 ```
