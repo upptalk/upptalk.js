@@ -17,7 +17,7 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "conducto": "~0.0.2",
+    "conducto": "~0.0.3",
     "request.js": "~0.0.6"
   },
   "devDependencies": {
