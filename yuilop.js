@@ -1220,6 +1220,12 @@ var PhoneNumber = (function (dataBase) {
 
   'use strict';
 
+  var tv4;
+  if (typeof module !== 'undefined' && module.exports)
+    tv4 = require('tv4');
+  else if (global.tv4)
+    tv4 = global.tv4;
+
   var parse = function(data) {
     if (typeof data !== 'string')
       return new TypeError('Not a string');
@@ -1280,16 +1286,23 @@ var PhoneNumber = (function (dataBase) {
       error.details = details;
     return error;
   };
+  var validateJSON = function(data, schema) {
+    var result = tv4.validateResult(data, schema);
+    if (result.valid === false)
+      return false;
+    else
+      return true;
+  };
 
-  var utils = {parse: parse, serialize: serialize, error: error};
+  var utils = {parse: parse, serialize: serialize, error: error, validate: validateJSON};
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+  if (typeof module !== 'undefined' && module.exports)
     module.exports = utils;
   else
-    window.conducto = utils;
+    global.conducto = utils;
 
-})();
-(function() {
+})(this);
+(function(global) {
 
   'use strict';
 
@@ -1299,11 +1312,18 @@ var PhoneNumber = (function (dataBase) {
   var error;
   var inherits;
 
-  if (typeof window !== 'undefined') {
-    EventEmitter = window.EventEmitter;
-    parse = window.conducto.parse;
-    serialize = window.conducto.serialize;
-    error = window.conducto.error;
+  if (typeof module !== 'undefined' && module.exports) {
+    var utils = require('./utils');
+    parse = utils.parse;
+    serialize = utils.serialize;
+    EventEmitter = require('events').EventEmitter;
+    inherits = require('util').inherits;
+  }
+  else {
+    EventEmitter = global.EventEmitter;
+    parse = global.conducto.parse;
+    serialize = global.conducto.serialize;
+    error = global.conducto.error;
     //https://github.com/joyent/node/blob/master/lib/util.js#L558
     inherits = function(ctor, superCtor) {
       ctor.super_ = superCtor;
@@ -1317,30 +1337,15 @@ var PhoneNumber = (function (dataBase) {
       });
     };
   }
-  else {
-    var utils = require('./utils');
-    parse = utils.parse;
-    serialize = utils.serialize;
-    EventEmitter = require('events').EventEmitter;
-    inherits = require('util').inherits;
-  }
 
   var Connection = function() {
-    this.notificationHandlers = {};
-    this.requestHandlers = {};
-    this.responseHandlers = {};
     EventEmitter.call(this);
+    this.responseHandlers = {};
     this.lastId = 0;
     this.stack = [];
   };
   inherits(Connection, EventEmitter);
   var methods = {
-    isLocalEvent: function(event) {
-      if (this.localEvents.indexOf(event) !== -1)
-        return true;
-      else
-        return false;
-    },
     onError: function(error) {
       if (error.data)
         error = error.data;
@@ -1354,18 +1359,18 @@ var PhoneNumber = (function (dataBase) {
       this.emit('close');
     },
     close: function() {
-      if (!this.transport || this.transport.readyState !== 3)
+      if (!this.transport || this.transport.readyState === 3)
         return this.onClose();
 
       this.transport.close();
     },
-    onData: function(string) {
-      if (string.data)
-        string = string.data;
+    onData: function(data) {
+      if (typeof data === 'object' && 'data' in data)
+        data = data.data;
 
-      var message = parse(string);
+      var message = parse(data);
       if (message instanceof Error)
-        return this.send({error: error('syntax', string)});
+        return this.send({error: error('syntax', data)});
 
       if (Array.isArray(message)) {
         for (var i = 0, l = message.length; i < l; i++)
@@ -1373,42 +1378,14 @@ var PhoneNumber = (function (dataBase) {
       }
       else
         this.onMessage(message);
+
+      this.emit('message', message, data);
     },
     onMessage: function(message) {
-      this.emit('message', message);
-
-      if (message.method) {
+      if (message.method)
         this.emit(message.method, message.payload);
-      }
-      else {
+      else
         this.onResponse(message);
-      }
-      // if (stanza.method) {
-      //   var requestHandler = this.getRequestHandler(stanza.method);
-      //   var notificationHandler = this.getNotificationHandler(stanza.method);
-      //   if (requestHandler)
-      //     requestHandler()
-      //   if (this.server)
-      //     this.server.onMessage(stanza, this);
-      //   else {
-      //     this.test(this, stanza);
-      //   }
-      // }
-      // else {
-      //   if (this.server) {
-      //   }
-      //   else {
-      //     this.onResponse(stanza);
-      //   }
-      // }
-
-      // var type;
-      // if (typeof stanza.id === 'undefined')
-      //   this.onNotification(stanza);
-      // else if (typeof stanza.method !== 'undefined')
-      //   this.onRequest(stanza);
-      // else
-      //   this.onResponse(stanza);
     },
     notify: function(method, payload) {
       var notification = {
@@ -1456,12 +1433,21 @@ var PhoneNumber = (function (dataBase) {
       if (this.readyState !== 1)
         return; //FIXME do something?
 
-      message = serialize(message);
-      if (message instanceof Error)
-        return message;
+      var serialized = serialize(message);
+      if (serialized instanceof Error)
+        return serialized;
 
-      this.transport.send(message);
-      this.emit('send', message);
+      this.transport.send(serialized);
+
+      //FIXME dirty hack
+      var hack = (function() {
+        this.emit('send', message, serialized);
+      }).bind(this);
+
+      if (typeof process !== 'undefined' && process.nextTick)
+        process.nextTick(hack);
+      else
+        setTimeout(hack, 0);
     },
     // onRequest: function(request) {
     //   return;
@@ -1532,128 +1518,6 @@ var PhoneNumber = (function (dataBase) {
     deleteResponseHandler: function(id) {
       delete this.responseHandlers[id];
     },
-    //
-    // //request handler
-    // //
-    // addRequestHandler: function(method, handler) {
-    //   this.requestHandlers[method] = handler;
-    // },
-    // getRequestHandler: function(method) {
-    //   return this.requestHandlers[method];
-    // },
-    // deleteRequestHandler: function(method) {
-    //   delete this.requestHandlers[method];
-    // },
-    // //
-    // //notification handler
-    // //
-    // addNotificationHandler: function(method, handler) {
-    //   this.notificationHandlers[method] = handler.bind(this);
-    // },
-    // getNotificationHandler: function(method) {
-    //   return this.notificationHandlers[method];
-    // },
-    // deleteNotificationHandler: function(method) {
-    //   delete this.notificationHandlers[method];
-    // },
-    //
-    //methods - goodies
-    //
-    // use: function(middleware) {
-    //   this.stack.push(middleware);
-    // },
-    // test: function(client, message) {
-    //   var stack = this.stack;
-    //   var i = 0;
-
-    //   var req = {
-    //     client: client,
-    //     method: message.method,
-    //     payload: message.payload
-    //   };
-    //   var res;
-    //   var next;
-
-    //   //expect an answer
-    //   if (message.id) {
-    //     req.id = message.id;
-    //     var responded = false;
-
-    //     res = function(err, ok) {
-    //       if (responded)
-    //         throw new Error('A response to request ' + message.id + ' has already been sent.');
-
-    //       client.respond(message, err, ok);
-    //       responded = true;
-    //     };
-
-    //     next = function() {
-    //       var layer = stack[i++];
-    //       if (!layer) {
-    //         if (!responded)
-    //           client.respond(message, 'Method not found');
-
-    //         return;
-    //       }
-    //       // if (responded)
-    //       //   res = function(err, res) {
-    //       //     throw Error('Request already answered');
-    //       //   };
-
-    //       layer(req, res, next);
-    //     };
-
-    //   }
-    //   //doesn't expect an answer
-    //   else {
-    //     next = function() {
-    //       var layer = stack[i++];
-    //       if (!layer)
-    //         return;
-    //       else
-    //         layer(req, res, next);
-    //     };
-    //   }
-
-    //   next();
-    // },
-    // addEventHandler: function(name, handler) {
-    //   this.use(function(req, res, next) {
-    //     if (req.method !== name)
-    //       return next();
-
-    //     handler(req.payload, res, next);
-    //   });
-      // return;
-      // // if (!handler)
-      // //   this.addNotificationHandler(name)
-      // // return;
-
-
-      // var name;
-      // var handler;
-      // //{name, handler}
-      // if (arguments.length === 1) {
-      //   name = arguments[0].name;
-      //   handler = arguments[0].handler;
-      // }
-      // //name, handler
-      // else {
-      //   name = arguments[0];
-      //   handler = arguments[1];
-      // }
-
-      // if (handler)
-      //   handler = handler.bind(this);
-
-      // var that = this;
-      // this.addNotificationHandler(name, handler);
-      // this.addRequestHandler(name, function(request) {
-      //   handler(request.payload, function(err, res) {
-      //     that.respond(request, err, res);
-      //   })
-      // });
-    // }
   };
   for (var i in methods)
     Connection.prototype[i] = methods[i];
@@ -1664,54 +1528,93 @@ var PhoneNumber = (function (dataBase) {
     }
   });
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+  if (typeof module !== 'undefined' && module.exports)
     module.exports = Connection;
   else
-    window.conducto.Connection = Connection;
+    global.conducto.Connection = Connection;
 
-})();
-(function() {
+})(this);
+(function(global) {
 
   'use strict';
 
   var Connection;
   var WebSocket;
-  if (typeof window !== 'undefined') {
-    Connection = window.conducto.Connection;
-    WebSocket = window.WebSocket;
-  }
-  else {
+  if (typeof module !== 'undefined' && module.exports) {
     Connection = require('./Connection');
     WebSocket = require('ws');
   }
+  else {
+    Connection = global.conducto.Connection;
+    WebSocket = global.WebSocket;
+  }
 
-  var Client = function(url) {
-    this.transport = null;
-    this.url = url;
-    this.emitters = {};
-    this.keepalive = 5000;
-    this.timeout = 2500;
-    Connection.call(this);
+  var opts = {
+    keepalive: 5000,
+    timeout: 2500,
+    port: 443,
+    secure: true,
+    hostname: undefined
   };
-  Client.prototype = new Connection();
+
+  var Client = function(option) {
+    this.transport = null;
+    this.emitters = {};
+    Connection.call(this);
+    for (var i in opts)
+      this[i] = opts[i];
+    this.handleOption(option);
+  };
+  Client.prototype = Connection.prototype;
 
   var methods = {
-    open: function(url) {
-      if (url)
-        this.url = url;
-      this.transport = new WebSocket(this.url);
+    open: function() {
+      var option;
+      var callback;
+      if (typeof arguments[0] === 'function')
+        callback = arguments[0];
+      else if (typeof arguments[0] !== 'function') {
+        option = arguments[0];
+        if (typeof arguments[1] === 'function')
+          callback = arguments[1];
+      }
+
+      this.handleOption(option);
+
+      if (callback)
+        this.once('open', callback);
+
+      this.transport = new WebSocket(this.urls.websocket);
       this.transport.addEventListener('open', this.onOpen.bind(this));
       this.transport.addEventListener('close', this.onClose.bind(this));
       this.transport.addEventListener('error', this.onError.bind(this));
       this.transport.addEventListener('message', this.onData.bind(this));
 
-      this.on('message', this.pingpong);
-      this.once('close', function() {
-        this.removeListener('message', this.pingpong);
-      });
+      if (this.keepalive) {
+        this.on('message', this.pingpong);
+        this.once('close', function() {
+          this.removeListener('message', this.pingpong);
+        });
+      }
     },
     defineEmitter: function(name, callback) {
       this.emitters[name] = callback.bind(this);
+    },
+    handleOption: function(option) {
+      if (typeof option === 'string')
+        this.hostname = option;
+      else if (typeof option === 'object') {
+        for (var i in opts) {
+          if (i in option) {
+            this[i] = option[i];
+          }
+        }
+      }
+
+      this.urls = {
+        websocket: (this.secure ? 'wss' : 'ws') + '://' + this.hostname + ':' + this.port,
+        http: (this.secure ? 'https' : 'http') + '://' + this.hostname + ':' + this.port,
+      };
     },
     pingpong: function() {
       if (this.pingTimeout)
@@ -1733,27 +1636,25 @@ var PhoneNumber = (function (dataBase) {
   for (var i in methods)
     Client.prototype[i] = methods[i];
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+  if (typeof module !== 'undefined' && module.exports)
     module.exports = Client;
   else
-    window.conducto.Client = Client;
+    global.conducto.Client = Client;
 
-
-})();
-(function() {
+})(this);
+(function(global) {
   'use strict';
 
   var conducto;
-  if (typeof conducto === 'undefined' && typeof require !== 'undefined')
-    conducto = require('conducto');
-  else
-    conducto = window.conducto;
-
   var request;
-  if (typeof request === 'undefined' && typeof require !== 'undefined')
+  if (typeof module !== 'undefined' && module.exports) {
+    conducto = require('conducto');
     request = require('request.js');
-  else
-    request = window.request;
+  }
+  else {
+    conducto = global.conducto;
+    request = global.request;
+  }
 
   var defaultConfig = {
     hostname: 'happy.ym.ms',
@@ -1762,26 +1663,15 @@ var PhoneNumber = (function (dataBase) {
   };
 
   var Y = function(config) {
-    if (typeof config === 'string')
-      config = {hostname: config};
-    else if (!config)
-      config = defaultConfig;
+    config = config || defaultConfig;
 
-    this.hostname = config.hostname;
-    this.secure = typeof config.secure === 'boolean' ? config.secure : true;
-    this.port = config.port || (this.secure === true ? 443 : 80);
-    this.urls = {
-      websocket: (this.secure ? 'wss' : 'ws') + '://' + this.hostname + ':' + this.port,
-      http: (this.secure ? 'https' : 'http') + '://' + this.hostname + ':' + this.port,
-    };
-
-    conducto.Client.call(this, this.urls.websocket);
+    conducto.Client.call(this, config);
 
     for (var i in emitters) {
       this.defineEmitter(i, emitters[i]);
     }
   };
-  Y.prototype = new conducto.Client();
+  Y.prototype = conducto.Client.prototype;
   Y.prototype.HTTPRequest = function(opts, callback, progress) {
     var options = {
       url: this.urls.http + opts.path,
@@ -1800,12 +1690,6 @@ var PhoneNumber = (function (dataBase) {
     request(options, callback, progress);
   };
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
-    module.exports = Y;
-  else if (typeof window !== 'undefined')
-    window.Y = Y;
-
-
   var emitters = {
     upload: function(file, callback, progress) {
       this.HTTPRequest({method: 'post', path: '/media', body: file}, callback, progress);
@@ -1820,5 +1704,10 @@ var PhoneNumber = (function (dataBase) {
     },
   };
 
-})();
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = Y;
+  else
+    global.Y = Y;
+
+})(this);
 
