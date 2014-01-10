@@ -509,8 +509,14 @@ y.send('storage', function(err, storage) {
 ### Keepalive
 yuilop.is includes a keepalive system. If no message has been received since 5 seconds, a ping will be sent to the server. If no pong has been received within 2.5 seconds, a close event will be emitted.
 
-The interval and timeout are configurable before opening the connection.
+The interval and timeout are configurable (in miliseconds) before opening the connection.
 ```javascript
-y.keepalive = 10;
-y.timeout = 5;
+y.keepalive = 10*1000; //10 seconds
+y.timeout = 5*1000; //5 seconds
 ```
+
+You can disable keepalives
+```javascript
+y.keepalive = false;
+```
+
