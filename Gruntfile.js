@@ -41,6 +41,7 @@ module.exports = function(grunt) {
           src:[
             'PhoneNumber.js/**/*.js',
             'Gruntfile.js',
+            // 'bin/yuilop', FIXME no support for shebang in esprima
             'lib/**/*.js',
             'test/**/*.js',
           ]
@@ -51,6 +52,7 @@ module.exports = function(grunt) {
       files:[
         'package.json',
         'Gruntfile.js',
+        'bin/yuilop',
         'lib/**/*.js',
         'test/**/*.js',
       ],

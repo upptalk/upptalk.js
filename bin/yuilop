@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+
+'use strict';
+
+var Y = require('..');
+var debug = true;
+var DEBUG = function(msg) {
+  if (debug)
+    console.log(msg);
+};
+
+if (process.argv.length < 3) {
+  console.log('Usage: yuilop (username:password) method (payload)');
+  process.exit(1);
+}
+
+var username;
+var password;
+var method;
+var payload;
+for (var i = 2; i < process.argv.length; i++) {
+  var arg = process.argv[i];
+  //credentials
+  if (i === 2 && arg.indexOf(':') > -1) {
+    var creds = arg.split(':');
+    username = creds[0];
+    password = creds[1];
+    continue;
+  }
+  //method
+  if (arg.indexOf('=') === -1) {
+    method = arg;
+    continue;
+  }
+
+  if (!payload)
+    payload = {};
+
+  //fields
+  var keyvalue = arg.split('=');
+  payload[keyvalue[0]] = keyvalue[1];
+}
+
+var client = new Y();
+DEBUG('OPENING');
+client.open('happy.dev.ym.ms', function() {
+  DEBUG('OPEN');
+  if (username && password) {
+    DEBUG('AUTHENTICATING');
+    this.send('authenticate', {username: username, password: password}, function(err) {
+      if (err) {
+        console.log('Authentication failed');
+        process.exit(1);
+      }
+      DEBUG('AUTHENTICATED');
+      call(method, payload);
+    });
+  }
+  else {
+    call(method, payload);
+  }
+});
+
+
+var done = function(err, res) {
+  DEBUG('RESPONSE');
+  if (err) {
+    console.log('Error:');
+    console.log(err);
+  }
+  else {
+    console.log('Success');
+    if (res)
+      console.log(res);
+  }
+  client.close();
+};
+
+var call = function(method, payload) {
+  DEBUG('CALLING');
+  if (payload) {
+    client.send(method, payload, done);
+  }
+  else {
+    client.send(method, done);
+  }
+};
