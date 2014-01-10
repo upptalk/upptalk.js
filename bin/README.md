@@ -12,25 +12,15 @@ yuilop command line tool client
 
 ## Examples
 
-#### No authentication
-
-##### Ping
+#### No authentication, no payload
 ```shell
-./bin/yuilop ping
+./bin/yuilop captcha
 ```
-##### Captcha
-```shell
-./bin yuilop captcha
-```
-#### Authentication
-```shell
-./bin yuilop username:password groups
-```
-#### Get profile
+#### Authentication, no payload
 ```shell
 ./bin yuilop username:password profile
 ```
-#### Set profile
+#### Authentication, payload
 ```shell
 ./bin yuilop username:password profile fullname='John Doe' nickname='John' email="john@doe.com"
 ```
