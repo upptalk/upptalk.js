@@ -1,4 +1,4 @@
-(function() {
+(function(global) {
 
   'use strict';
 
@@ -10,9 +10,9 @@
     secure: false
   };
 
-
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined')
+  if (typeof module !== 'undefined' && module.exports)
     module.exports = config;
-  else if (typeof window !== 'undefined')
-    window.config = config;
-})();
+  else
+    global.config = config;
+
+})(this);
