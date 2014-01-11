@@ -15,25 +15,25 @@
         console.log('');
       }
 
-      var client = new Y(config.url);
+      var client = new Y();
       client.open();
       client.on('open', function() {
         LOG('OPEN')
-        client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
+        client.send('authenticate', {username: config.username, password: config.password}, function(err) {
           if (err)
             return console.log(err);
 
           LOG('AUTHENTICATED');
 
-          client.emit('presence');
-          // client.emit('ping', function() {
+          client.send('presence');
+          // client.send('ping', function() {
             // console.log('lol')
           // });
-          // client.emit('energy', function(err, energy) {
+          // client.send('energy', function(err, energy) {
           //   console.log(err || energy);
           // });
         });
-        // client.emit('ping', function() {
+        // client.send('ping', function() {
         //   console.log('pong')
         // });
       });

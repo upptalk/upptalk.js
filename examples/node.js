@@ -11,20 +11,20 @@ var LOG = function(header, what) {
   console.log('');
 }
 
-var client = new Y(config.url);
+var client = new Y();
 client.on('open', function() {
   LOG('OPEN')
-  client.emit('authenticate', {username: config.username, password: config.password}, function(err) {
+  client.send('authenticate', {username: config.username, password: config.password}, function(err) {
     if (err)
       return console.log(err);
 
     LOG('AUTHENTICATED');
 
-    client.emit('presence');
-    client.emit('ping', function(err, res) {
+    client.send('presence');
+    client.send('ping', function(err, res) {
       console.log(err || res);
     });
-    client.emit('energy', function(err, energy) {
+    client.send('energy', function(err, energy) {
       console.log(err || energy);
     });
   });
@@ -45,5 +45,3 @@ client.on('close', function() {
 client.on('error', function(err) {
   LOG('ERRROR:', err);
 });
-
-client.use(ping);
