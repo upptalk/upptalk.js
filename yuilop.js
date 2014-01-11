@@ -1220,11 +1220,22 @@ var PhoneNumber = (function (dataBase) {
 
   'use strict';
 
-  var tv4;
-  if (typeof module !== 'undefined' && module.exports)
-    tv4 = require('tv4');
-  else if (global.tv4)
-    tv4 = global.tv4;
+  if (typeof module !== 'undefined' && module.exports) {
+    var utils = require('./lib/utils')
+    var Connection = require('./lib/Connection')
+    module.exports = {
+      parse: utils.parse,
+      serialize: utils.serialize,
+      Connection: Connection
+    };
+  }
+  else
+    global.conducto = {};
+
+})(this);
+(function(global) {
+
+  'use strict';
 
   var parse = function(data) {
     if (typeof data !== 'string')
@@ -1251,55 +1262,15 @@ var PhoneNumber = (function (dataBase) {
     }
     return data;
   };
-  var errors = {
-    //JSON can't be parsed
-    syntax: {
-      code: 0,
-      message: 'Syntax error.'
-    },
-    //JSON message doesn't appear to be a valid message according to the protocol definition
-    invalid: {
-      code: 1,
-      message: 'Invalid message.'
-    },
-    //Entity doesn't implement this feature
-    feature: {
-      code: 2,
-      message: 'Feature not implemented.'
-    },
-    //Payload is invalid
-    payload: {
-      code: 3,
-      message: 'Invalid payload.'
-    },
-    //Internal entity error
-    internal: {
-      code: 4,
-      message: 'Internal error.'
-    }
-  };
-  var error = function(type, details) {
-    var error = {};
-    error.code = errors[type].type;
-    error.message = errors[type].message;
-    if (details)
-      error.details = details;
-    return error;
-  };
-  var validateJSON = function(data, schema) {
-    var result = tv4.validateResult(data, schema);
-    if (result.valid === false)
-      return false;
-    else
-      return true;
-  };
 
-  var utils = {parse: parse, serialize: serialize, error: error, validate: validateJSON};
+  var utils = {parse: parse, serialize: serialize};
 
   if (typeof module !== 'undefined' && module.exports)
     module.exports = utils;
-  else
-    global.conducto = utils;
+  else {
+    global.conducto.parse = parse;
+    global.conducto.serialize = serialize;
+  }
 
 })(this);
 (function(global) {
@@ -1307,23 +1278,20 @@ var PhoneNumber = (function (dataBase) {
   'use strict';
 
   var EventEmitter;
-  var parse;
-  var serialize;
-  var error;
+  var utils;
   var inherits;
 
   if (typeof module !== 'undefined' && module.exports) {
-    var utils = require('./utils');
-    parse = utils.parse;
-    serialize = utils.serialize;
+    utils = require('./utils');
     EventEmitter = require('events').EventEmitter;
     inherits = require('util').inherits;
   }
   else {
+    utils = {
+      serialize: global.conducto.serialize,
+      parse: global.conducto.parse
+    };
     EventEmitter = global.EventEmitter;
-    parse = global.conducto.parse;
-    serialize = global.conducto.serialize;
-    error = global.conducto.error;
     //https://github.com/joyent/node/blob/master/lib/util.js#L558
     inherits = function(ctor, superCtor) {
       ctor.super_ = superCtor;
@@ -1342,7 +1310,6 @@ var PhoneNumber = (function (dataBase) {
     EventEmitter.call(this);
     this.responseHandlers = {};
     this.lastId = 0;
-    this.stack = [];
   };
   inherits(Connection, EventEmitter);
   var methods = {
@@ -1368,9 +1335,9 @@ var PhoneNumber = (function (dataBase) {
       if (typeof data === 'object' && 'data' in data)
         data = data.data;
 
-      var message = parse(data);
+      var message = utils.parse(data);
       if (message instanceof Error)
-        return this.send({error: error('syntax', data)});
+        return this.send({error: true});//FIXME
 
       if (Array.isArray(message)) {
         for (var i = 0, l = message.length; i < l; i++)
@@ -1433,7 +1400,7 @@ var PhoneNumber = (function (dataBase) {
       if (this.readyState !== 1)
         return; //FIXME do something?
 
-      var serialized = serialize(message);
+      var serialized = utils.serialize(message);
       if (serialized instanceof Error)
         return serialized;
 
@@ -1541,7 +1508,7 @@ var PhoneNumber = (function (dataBase) {
   var Connection;
   var WebSocket;
   if (typeof module !== 'undefined' && module.exports) {
-    Connection = require('./Connection');
+    Connection = require('conducto-core').Connection;
     WebSocket = require('ws');
   }
   else {
@@ -1643,16 +1610,17 @@ var PhoneNumber = (function (dataBase) {
 
 })(this);
 (function(global) {
+
   'use strict';
 
-  var conducto;
+  var Conducto;
   var request;
   if (typeof module !== 'undefined' && module.exports) {
-    conducto = require('conducto');
+    Conducto = require('conducto-client');
     request = require('request.js');
   }
   else {
-    conducto = global.conducto;
+    Conducto = global.conducto.Client;
     request = global.request;
   }
 
@@ -1665,13 +1633,13 @@ var PhoneNumber = (function (dataBase) {
   var Y = function(config) {
     config = config || defaultConfig;
 
-    conducto.Client.call(this, config);
+    Conducto.call(this, config);
 
     for (var i in emitters) {
       this.defineEmitter(i, emitters[i]);
     }
   };
-  Y.prototype = conducto.Client.prototype;
+  Y.prototype = Conducto.prototype;
   Y.prototype.HTTPRequest = function(opts, callback, progress) {
     var options = {
       url: this.urls.http + opts.path,

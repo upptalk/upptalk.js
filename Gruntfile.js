@@ -15,9 +15,10 @@ module.exports = function(grunt) {
           'PhoneNumber.js/PhoneNumber.js',
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
           'node_modules/request.js/lib/request.js',
-          'node_modules/conducto/lib/utils.js',
-          'node_modules/conducto/lib/Connection.js',
-          'node_modules/conducto/lib/Client.js',
+          'node_modules/conducto-client/node_modules/conducto-core/index.js',
+          'node_modules/conducto-client/node_modules/conducto-core/lib/utils.js',
+          'node_modules/conducto-client/node_modules/conducto-core/lib/Connection.js',
+          'node_modules/conducto-client/lib/Client.js',
           'lib/index.js',
         ],
         dest: 'yuilop.js'
@@ -51,14 +52,14 @@ module.exports = function(grunt) {
     jshint: {
       files:[
         'package.json',
+        'bower.json',
         'Gruntfile.js',
         'bin/yuilop',
         'lib/**/*.js',
         'test/**/*.js',
       ],
       options: {
-        jshintrc: '.jshintrc',
-        ignores: ['node_modules/**.js']
+        jshintrc: '.jshintrc'
       }
     },
     mochaTest: {
