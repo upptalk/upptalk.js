@@ -101,7 +101,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
-  grunt.registerTask('test', ['jsvalidate', 'mocha', 'jshint']);
+  grunt.registerTask('test', ['jsvalidate', 'jshint',  'mocha']);
   grunt.registerTask('default', 'test');
 
   grunt.registerTask('build', ['concat', 'uglify']);
