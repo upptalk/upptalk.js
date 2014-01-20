@@ -40,7 +40,8 @@ options argument is a optional. If it's not defined, yuilop production environme
 var options = {
   host : 'example.com',
   port: 443,
-  secure: true
+  secure: true,
+  apikey: 'YOUR-API-KEY'
 };
 ```
 
