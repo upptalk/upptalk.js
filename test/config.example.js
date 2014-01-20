@@ -5,6 +5,7 @@
   var config = {
     username: '',
     password: '',
+    apikey: '',
     hostname: 'localhost',
     port: 9595,
     secure: false

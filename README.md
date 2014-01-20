@@ -38,7 +38,7 @@ var y = new Y(options);
 options argument is a optional. If it's not defined, yuilop production environment will be used.
 ```javascript
 var options = {
-  hostname : 'example.com',
+  host : 'example.com',
   port: 443,
   secure: true
 };

@@ -46,36 +46,29 @@
       var client = new Y();
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.hostname === 'happy.ym.ms');
-      assert(client.urls.websocket === 'wss://happy.ym.ms:443');
-      assert(client.urls.http === 'https://happy.ym.ms:443');
+      assert(client.host === 'happy.ym.ms');
     });
 
     test('custom config, default values', function() {
-      var client = new Y({hostname: 'example.com'});
+      var client = new Y({host: 'example.com', apikey: 'foo'});
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.hostname === 'example.com');
-      assert(client.urls.websocket === 'wss://example.com:443');
-      assert(client.urls.http === 'https://example.com:443');
+      assert(client.host === 'example.com');
+      assert(client.apikey === 'foo');
     });
 
     test('custom config, default values', function() {
-      var client = new Y({hostname: 'example.com'});
+      var client = new Y({host: 'example.com'});
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.hostname === 'example.com');
-      assert(client.urls.websocket === 'wss://example.com:443');
-      assert(client.urls.http === 'https://example.com:443');
+      assert(client.host === 'example.com');
     });
 
     test('custom config, string', function() {
       var client = new Y('example.com');
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.hostname === 'example.com');
-      assert(client.urls.websocket === 'wss://example.com:443');
-      assert(client.urls.http === 'https://example.com:443');
+      assert(client.host === 'example.com');
     });
   });
 
@@ -87,6 +80,12 @@
     test('open', function(done) {
       client.open();
       client.once('open', done);
+    });
+    test('HTTPRequest', function(done) {
+      client.HTTPRequest({method: 'POST', body: {method: 'ping', id: Math.random().toString()}}, function(err) {
+        assert(!err);
+        done();
+      });
     });
     test('ping', function(done) {
       client.send('ping', function(err, res) {

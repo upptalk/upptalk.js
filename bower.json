@@ -1,9 +1,23 @@
 {
   "name": "yuilop.js",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "homepage": "https://github.com/yuilop/yuilop.js",
   "authors": [
     "Sonny Piers <sonny@yuilop.com>"
+  ],
+  "ignore": [
+    ".gitignore",
+    ".jshintignore",
+    ".jshintrc",
+    ".npmignore",
+    "package.json",
+    "Gruntfile.js",
+    "lib",
+    "bin",
+    "examples",
+    "node_modules",
+    "PhoneNumber.js",
+    "test"
   ],
   "description": "yuilop client JavaScript library",
   "main": "yuilop.js",

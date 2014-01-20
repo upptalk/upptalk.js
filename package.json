@@ -1,7 +1,7 @@
 {
   "name": "yuilop.js",
   "description": "yuilop client JavaScript library",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "author": "Sonny Piers <sonny@yuilop.com>",
   "main": "lib/index.js",
   "homepage": "https://github.com/yuilop/yuilop.js",
@@ -17,8 +17,7 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "conducto-client": "~0.0.2",
-    "request.js": "~0.0.6"
+    "conducto-client": "~0.0.2"
   },
   "devDependencies": {
     "wolfy87-eventemitter": "~4.2.6",

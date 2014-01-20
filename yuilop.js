@@ -1103,126 +1103,260 @@ var PhoneNumber = (function (dataBase) {
 	}
 }.call(this));
 
-(function(){
+(function(global) {
 
   'use strict';
 
-  var request = function(options, callback, progress) {
-    if (typeof options === 'string')
-      options = {url: options};
-    if (typeof options.method === 'string')
-      options.method = options.method.toUpperCase();
-    else
-      options.method = 'GET';
-    if (typeof options.headers !== 'object')
-      options.headers = {};
-    if (typeof options.responseType !== 'string')
-      options.responseType = 'blob';
+  var formatQuery = function(query, sep, eq) {
+    //separator character
+    sep = sep || '&';
+    //assignement character
+    eq = eq || '=';
+
+    var querystring = '';
+    if (typeof query === 'object') {
+      for (var i in query) {
+        querystring += i + eq + query[i] + sep;
+      }
+
+      if (querystring.length > 0)
+        querystring = '?' + querystring.slice(0, -1);
+    }
+    return querystring;
+  };
+
+  var formatURL = function(obj, sep, eq) {
+
+    var querystring = formatQuery(obj.query);
+
+    return [
+      obj.secure ? 'https' : 'http',
+      '://',
+      obj.host,
+      obj.port ? ':' + obj.port : '',
+      obj.path || '/',
+      querystring,
+      obj.hash || ''
+    ].join('');
+  };
+
+  var XMLHttpRequest = global.XMLHttpRequest;
+  var dummy = function() {};
+
+  var HTTPRequest = function(options) {
+    var events = ['response', 'error', 'end'];
+    for (var i = 0; i < events.length; i++)
+      this['on' + events[i]] = dummy;
+
+    var opts = HTTPClient.utils.handleOptions(options);
+
+    for (var j in opts)
+      this[j] = opts[j];
 
     var req = new XMLHttpRequest();
-    var type;
-    var parse = false;
 
-    callback.bind(req);
+    req.addEventListener('error', (function(err) {
+      this.onerror(err);
+    }).bind(this));
 
-    req.addEventListener('error', function(err) {
-      return callback(err);
-    });
-    req.addEventListener('abort', function() {
-      return callback(true);
-    });
-    req.addEventListener('readystatechange', function() {
+    req.addEventListener('readystatechange', (function() {
       //0   UNSENT  open()has not been called yet.
       //1   OPENED  send()has not been called yet.
       //2   HEADERS_RECEIVED  send() has been called, and headers and status are available.
       //3   LOADING   Downloading; responseText holds partial data.
       //4   DONE  The operation is complete.
-      if (this.readyState === 2) {
-        type = this.getResponseHeader('Content-Type');
-        if (typeof type !== 'string')
-          return;
+      // if (req.readyState === 1) {
+      //   this.onopen();
+      // }
+      if (req.readyState === 2) {
+        var headers = {};
+        var str = req.getAllResponseHeaders();
+        if (str) {
+          var lines = str.split('\n');
+          for (var i = 0; i < lines.length; i++) {
+            if (!lines[i])
+              continue;
 
-        if (type.indexOf('application/json') === 0) {
-          try {
-            req.responseType = 'json';
+            var keyvalue = lines[i].split(':');
+            headers[keyvalue[0].toLowerCase()] = keyvalue.slice(1).join().trim();
           }
-          catch (e) {}
-          //chrome < 30 doesn't throw exception
-          if (req.responseType !== 'json')
-            parse = true;
         }
-        else if (type.indexOf('text/') === 0)
-          req.responseType = 'text';
-      }
-      else if (this.readyState === 4) {
-        var err;
-        if (this.status.toString()[0] !== '2')
-          err = {status: this.status};
 
-        var response = parse ? JSON.parse(this.response) : this.response;
-        return callback(err || undefined, response);
+        var status = req.status;
+        this.onresponse({
+          headers: headers,
+          status: status,
+          type: HTTPClient.utils.getTypeFromHeaders(headers)
+        });
       }
-    });
-    if (progress) {
-      var target = req;
-      if (req.method === 'PUT' || req.method === 'POST')
-        target = req.upload;
+      else if (req.readyState === 4) {
+        this.onend(req.response);
+      }
+    }).bind(this));
 
-      target.addEventListener('progress', function(e) {
-        var complete = e.lengthComputable ? e.loaded / e.total : null;
-        progress(complete);
-      });
+    // req.addEventListener('progress', (function(e) {
+    //   var complete = e.lengthComputable ? e.loaded / e.total : null;
+    //   this.ondownloadprogress(complete);
+    // }).bind(this));
+
+    // req.upload.addEventListener('progress', (function(e) {
+    //   var complete = e.lengthComputable ? e.loaded / e.total : null;
+    //   this.onuploadprogress(complete);
+    // }).bind(this));
+
+    req.open(opts.method, formatURL(opts), true);
+
+    // if (this.responseType)
+    //   req.responseType = this.responseType;
+
+    for (var k in opts.headers) {
+      req.setRequestHeader(k, opts.headers[k]);
     }
 
-    req.open(options.method, options.url, true);
+    req.send(opts.body);
 
-    if (typeof options.username === 'string' && typeof options.password === 'string') {
-      var creds = options.username + ':' + options.password;
-      options.headers['Authorization'] = 'Basic ' + btoa(creds);
-    }
-    if (options.responseType)
-      req.responseType = options.responseType;
-
-    var body = null;
-    if (options.body !== undefined && options.body !== null) {
-      if (Array.isArray(options.body) || (typeof options.body === 'object' && Object.getPrototypeOf(options.body) === Object.prototype)) {
-        try {
-          body = JSON.stringify(options.body);
-          if (!options.headers['Content-Type'])
-            options.headers['Content-Type'] = 'application/json';
-        }
-        catch (e) {
-          body = options.body;
-        }
-      }
-      else if (typeof options.body === 'string') {
-        if (!options.headers['Content-Type'])
-          options.headers['Content-Type'] = 'text/plain';
-        body = options.body;
-      }
-      else {
-        body = options.body;
-      }
-    }
-
-    for (var i in options.headers) {
-      req.setRequestHeader(i, options.headers[i]);
-    }
-
-    req.send(body);
+    this.req = req;
+  };
+  HTTPRequest.prototype.abort = function() {
+    this.req.abort();
   };
 
-  window.request = request;
+  global.HTTPRequest = HTTPRequest;
 
-})();
+})(this);
+(function(global) {
 
+  'use strict';
+
+  var HTTPRequest;
+
+  if (typeof module !== 'undefined' && module.exports)
+    HTTPRequest = require('./lib/node');
+  else
+    HTTPRequest = global.HTTPRequest;
+
+  var test = function(options, callback) {
+    if (!callback)
+      return new HTTPRequest(options);
+
+    var req = new HTTPRequest(options);
+    req.onerror = function(err) {
+      callback(err);
+    };
+    var res;
+    req.onresponse = function(response) {
+      res = response;
+    };
+    req.onend = function(body) {
+      res.body = body;
+      callback(null, res);
+    };
+
+    return req;
+  };
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = test;
+  else
+    global.HTTPClient = test;
+
+})(this);
+(function(global) {
+
+  'use strict';
+
+  var base64;
+  if (typeof Buffer !== 'undefined') {
+    base64 = function(str) {
+      return (new Buffer(str)).toString('base64');
+    };
+  }
+  else {
+    base64 = global.btoa;
+  }
+
+  var getPrototypeOf = function(obj) {
+    if (Object.getPrototypeOf)
+      return Object.getPrototypeOf(obj);
+    else
+      return obj.__proto__;
+  };
+
+  var prototypeOfObject = getPrototypeOf({});
+
+  var handleOptions = function(opts) {
+
+    var options = {};
+
+    options.query = typeof opts.query === 'object' ? opts.query : {};
+    options.secure = !!opts.secure || false;
+    options.port = opts.port || (options.secure ? 443 : 80);
+    options.host = opts.host || 'localhost';
+    options.path = opts.path || '/';
+    options.headers = typeof opts.headers === 'object' ? opts.headers : {};
+    options.method = typeof opts.method === 'string' ? opts.method.toUpperCase() : 'GET';
+
+    //to lower cases headers
+    for (var i in options.headers) {
+      var v = options.headers[i];
+      delete options.headers[i];
+      options.headers[i.toLowerCase()] = v;
+    }
+
+    //basic auth
+    if (typeof opts.username === 'string' && typeof opts.password === 'string') {
+      var creds = opts.username + ':' + opts.password;
+      options.headers.authorization = 'Basic ' + base64(creds);
+    }
+
+    //json
+    if (Array.isArray(opts.body) || (typeof opts.body == 'object' && getPrototypeOf(opts.body) === prototypeOfObject)) {
+      options.body = JSON.stringify(opts.body);
+      if (!options.headers['tontent-type'])
+        options.headers['content-type'] = 'application/json; charset=utf-8';
+    }
+    //string
+    else if (typeof opts.body === 'string') {
+      options.body = opts.body;
+      if (!options.headers['content-type'])
+        options.headers['content-type'] = 'text/plain; charset=utf-8';
+    }
+    else if (opts.body !== undefined || opts.body !== null) {
+      options.body = opts.body;
+    }
+
+    return options;
+  };
+
+  var getTypeFromHeaders = function(headers) {
+    var type = '';
+    if (typeof headers === 'object') {
+      var contentType = headers['content-type'];
+      if (contentType)
+        type = contentType.split(';')[0];
+    }
+    return type;
+  };
+
+  var utils = {
+    handleOptions: handleOptions,
+    getTypeFromHeaders: getTypeFromHeaders,
+    getPrototypeOf: getPrototypeOf
+  };
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = utils;
+  else
+    global.HTTPClient.utils = utils;
+
+})(this);
 (function(global) {
 
   'use strict';
 
   if (typeof module !== 'undefined' && module.exports) {
-    var utils = require('./lib/utils')
-    var Connection = require('./lib/Connection')
+    var utils = require('./lib/utils');
+    var Connection = require('./lib/Connection');
     module.exports = {
       parse: utils.parse,
       serialize: utils.serialize,
@@ -1308,6 +1442,7 @@ var PhoneNumber = (function (dataBase) {
 
   var Connection = function() {
     EventEmitter.call(this);
+    this.actions = {};
     this.responseHandlers = {};
     this.lastId = 0;
   };
@@ -1337,7 +1472,7 @@ var PhoneNumber = (function (dataBase) {
 
       var message = utils.parse(data);
       if (message instanceof Error)
-        return this.send({error: true});//FIXME
+        return; //FIXME
 
       if (Array.isArray(message)) {
         for (var i = 0, l = message.length; i < l; i++)
@@ -1375,8 +1510,8 @@ var PhoneNumber = (function (dataBase) {
 
       var event = arguments[0];
 
-      if (this.emitters && this.emitters[event])
-        return this.emitters[event].apply(this, Array.prototype.slice.call(arguments, 1));
+      if (this.actions[event])
+        return this.actions[event].apply(this, Array.prototype.slice.call(arguments, 1));
 
       var payload;
       var callback;
@@ -1393,6 +1528,9 @@ var PhoneNumber = (function (dataBase) {
       else {
         this.request(event, payload, callback);
       }
+    },
+    defineAction: function(name, callback) {
+      this.actions[name] = callback.bind(this);
     },
     sendMessage: function(message) {
       if (!this.transport)
@@ -1507,26 +1645,43 @@ var PhoneNumber = (function (dataBase) {
 
   var Connection;
   var WebSocket;
+  var http;
   if (typeof module !== 'undefined' && module.exports) {
     Connection = require('conducto-core').Connection;
     WebSocket = require('ws');
+    http = require('httpclient');
   }
   else {
     Connection = global.conducto.Connection;
     WebSocket = global.WebSocket;
+    http = global.HTTPClient;
   }
+
+  var formatQuery = function(query) {
+    var querystring = '';
+    if (typeof query === 'object') {
+      for (var i in query) {
+        querystring += i + '=' + query[i] + '&';
+      }
+
+      if (querystring.length > 0)
+        querystring = '?' + querystring.slice(0, -1);
+    }
+    return querystring;
+  };
 
   var opts = {
     keepalive: 5000,
     timeout: 2500,
+    path: '/',
     port: 443,
     secure: true,
-    hostname: undefined
+    host: 'localhost',
+    query: {}
   };
 
   var Client = function(option) {
     this.transport = null;
-    this.emitters = {};
     Connection.call(this);
     for (var i in opts)
       this[i] = opts[i];
@@ -1551,7 +1706,12 @@ var PhoneNumber = (function (dataBase) {
       if (callback)
         this.once('open', callback);
 
-      this.transport = new WebSocket(this.urls.websocket);
+      var url = (this.secure ? 'wss' : 'ws') + '://' + this.host + ':' + this.port + this.path;
+      var qs = formatQuery(this.query);
+      if (qs)
+        url += qs;
+
+      this.transport = new WebSocket(url);
       this.transport.addEventListener('open', this.onOpen.bind(this));
       this.transport.addEventListener('close', this.onClose.bind(this));
       this.transport.addEventListener('error', this.onError.bind(this));
@@ -1564,12 +1724,9 @@ var PhoneNumber = (function (dataBase) {
         });
       }
     },
-    defineEmitter: function(name, callback) {
-      this.emitters[name] = callback.bind(this);
-    },
     handleOption: function(option) {
       if (typeof option === 'string')
-        this.hostname = option;
+        this.host = option;
       else if (typeof option === 'object') {
         for (var i in opts) {
           if (i in option) {
@@ -1577,11 +1734,6 @@ var PhoneNumber = (function (dataBase) {
           }
         }
       }
-
-      this.urls = {
-        websocket: (this.secure ? 'wss' : 'ws') + '://' + this.hostname + ':' + this.port,
-        http: (this.secure ? 'https' : 'http') + '://' + this.hostname + ':' + this.port,
-      };
     },
     pingpong: function() {
       if (this.pingTimeout)
@@ -1597,6 +1749,28 @@ var PhoneNumber = (function (dataBase) {
           clearTimeout(pong);
         });
       }, this.keepalive);
+    },
+    HTTPRequest: function(opts, callback) {
+      var options = {
+        host: this.host,
+        port: this.port,
+        secure: this.secure,
+        username: this.username,
+        password: this.password,
+        query: this.query,
+        path: this.path
+      };
+
+      if (opts.auth === false) {
+        delete options.username;
+        delete options.password;
+        delete opts.auth;
+      }
+      delete opts.path;
+      for (var i in opts)
+        options[i] = opts[i];
+
+      http(options, callback);
     }
   };
 
@@ -1625,51 +1799,32 @@ var PhoneNumber = (function (dataBase) {
   }
 
   var defaultConfig = {
-    hostname: 'happy.ym.ms',
+    host: 'happy.ym.ms',
     port: 443,
     secure: true
   };
 
   var Y = function(config) {
     config = config || defaultConfig;
+    if (config.apikey) {
+      config.query = {
+        apikey: config.apikey
+      };
+      this.apikey = config.apikey;
+    }
 
     Conducto.call(this, config);
 
-    for (var i in emitters) {
-      this.defineEmitter(i, emitters[i]);
+    for (var i in actions) {
+      this.defineAction(i, actions[i]);
     }
   };
   Y.prototype = Conducto.prototype;
-  Y.prototype.HTTPRequest = function(opts, callback, progress) {
-    var options = {
-      url: this.urls.http + opts.path,
-      username: this.username,
-      password: this.password
-    };
-    if (opts.auth === false) {
-      delete options.username;
-      delete options.password;
-      delete opts.auth;
-    }
-    delete opts.path;
-    for (var i in opts)
-      options[i] = opts[i];
 
-    request(options, callback, progress);
-  };
-
-  var emitters = {
+  var actions = {
     upload: function(file, callback, progress) {
       this.HTTPRequest({method: 'post', path: '/media', body: file}, callback, progress);
-    },
-    captcha: function(callback) {
-      this.HTTPRequest({method: 'get', path: '/captcha', auth: false}, function(err, body) {
-        if (err)
-          return callback({message: 'Internal client error'});
-
-        callback(body.error, body.result);
-      });
-    },
+    }
   };
 
   if (typeof module !== 'undefined' && module.exports)
