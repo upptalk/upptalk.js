@@ -1799,13 +1799,22 @@ var PhoneNumber = (function (dataBase) {
   }
 
   var defaultConfig = {
-    host: 'happy.ym.ms',
+    host: 'happy.dev.ym.ms',
     port: 443,
     secure: true
   };
 
   var UppTalk = function(config) {
-    config = config || defaultConfig;
+    if (typeof config === 'object') {
+      for (var i in defaultConfig) {
+        if (!(i in config))
+          config[i] = defaultConfig[i];
+      }
+    }
+    else {
+      config = defaultConfig;
+    }
+
     if (config.apikey) {
       config.query = {
         apikey: config.apikey
@@ -1815,8 +1824,8 @@ var PhoneNumber = (function (dataBase) {
 
     Conducto.call(this, config);
 
-    for (var i in actions) {
-      this.defineAction(i, actions[i]);
+    for (var j in actions) {
+      this.defineAction(j, actions[j]);
     }
   };
   UppTalk.prototype = Conducto.prototype;

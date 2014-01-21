@@ -42,11 +42,11 @@
   var group;
 
   suite('Client', function() {
-    test('default config', function() {
+    test('no config', function() {
       var client = new UppTalk();
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.host === 'happy.ym.ms');
+      assert(client.host === 'happy.dev.ym.ms');
     });
 
     test('custom config, default values', function() {
@@ -59,13 +59,6 @@
 
     test('custom config, default values', function() {
       var client = new UppTalk({host: 'example.com'});
-      assert(client.secure === true);
-      assert(client.port === 443);
-      assert(client.host === 'example.com');
-    });
-
-    test('custom config, string', function() {
-      var client = new UppTalk('example.com');
       assert(client.secure === true);
       assert(client.port === 443);
       assert(client.host === 'example.com');

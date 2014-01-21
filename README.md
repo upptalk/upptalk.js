@@ -13,36 +13,26 @@ npm install git+ssh://git@github.com:yuilop/upptalk.js
 var UppTalk = require('upptalk');
 ```
 ## Browser
-##### Install
+##### Install
 ```shell
 bower install git@github.com:yuilop/upptalk.js
 ```
-##### Include
+##### Include
 ```xml
 <script src="bower_components/upptalk.js/upptalk.js"></script>
 ```
 
 ## API
 
-### Init
+### init
 Create a UppTalk client instance.
 ```javascript
-var client = new UppTalk(options);
+var client = new UppTalk({apikey: 'YOUR-API-KEY'});
 ```
-options argument is a optional. If it's not defined, yuilop production environment will be used.
-```javascript
-var options = {
-  host : 'example.com',
-  port: 443,
-  secure: true,
-  apikey: 'YOUR-API-KEY'
-};
-```
-
 ### open
 Open the connection.
 ```javascript
-y.open();
+client.open();
 ```
 ### close
 Close the connection.
@@ -90,7 +80,7 @@ client.on('open', function() {
 ### message
 Emitted for every incoming message.
 ```javascript
-y.on('message', function(message) {
+client.on('message', function(message) {
   console.log('message in:');
   console.log(message);
 });
@@ -99,7 +89,7 @@ y.on('message', function(message) {
 ### sent
 Emitted for every sent message.
 ```javascript
-y.on('send', function(message) {
+client.on('send', function(message) {
   console.log('message out:');
   console.log(message);
 });
@@ -108,7 +98,7 @@ y.on('send', function(message) {
 ### error
 Emitted when a connection error occurs.
 ```javascript
-y.on('error', function(err) {
+client.on('error', function(err) {
   console.log('ERROR:')
   console.log(err);
 });
@@ -128,7 +118,7 @@ client.on('close', function() {
 ##### Register
 ```javascript
 client.send('captcha', function(err, captcha) {
-  //captcha object is similar to {
+  //captcha object example {
   //  "token": "TOKEN",
   //  "question": "Where is the heart?",
   //  "choices": {
@@ -139,7 +129,7 @@ client.send('captcha', function(err, captcha) {
   //}
 });
 ```
-You'll have then to send the token and the choice array index.
+You'll have then to send the token and the choice id.
 ```javascript
 var payload = {
   username: '',
