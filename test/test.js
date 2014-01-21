@@ -6,15 +6,15 @@
 
   var assert;
   var config;
-  var Y;
+  var UppTalk;
 
   if (typeof module !== 'undefined' && module.exports) {
-    Y = require('../lib/index');
+    UppTalk = require('..');
     assert = require('assert');
     config = require('./config');
   }
   else {
-    Y = global.Y;
+    UppTalk = global.UppTalk;
     assert = function assert(expr, msg) {
       if (!expr) throw new Error(msg || 'failed');
     };
@@ -43,14 +43,14 @@
 
   suite('Client', function() {
     test('default config', function() {
-      var client = new Y();
+      var client = new UppTalk();
       assert(client.secure === true);
       assert(client.port === 443);
       assert(client.host === 'happy.ym.ms');
     });
 
     test('custom config, default values', function() {
-      var client = new Y({host: 'example.com', apikey: 'foo'});
+      var client = new UppTalk({host: 'example.com', apikey: 'foo'});
       assert(client.secure === true);
       assert(client.port === 443);
       assert(client.host === 'example.com');
@@ -58,14 +58,14 @@
     });
 
     test('custom config, default values', function() {
-      var client = new Y({host: 'example.com'});
+      var client = new UppTalk({host: 'example.com'});
       assert(client.secure === true);
       assert(client.port === 443);
       assert(client.host === 'example.com');
     });
 
     test('custom config, string', function() {
-      var client = new Y('example.com');
+      var client = new UppTalk('example.com');
       assert(client.secure === true);
       assert(client.port === 443);
       assert(client.host === 'example.com');
@@ -73,7 +73,7 @@
   });
 
   suite('Client API', function() {
-    var client = new Y(config);
+    var client = new UppTalk(config);
     client.username = config.username;
     client.password = config.password;
 

@@ -4,8 +4,8 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     clean: [
-      'yuilop.js',
-      'yuilop.min.js'
+      'upptalk.js',
+      'upptalk.min.js'
     ],
     concat: {
       dist: {
@@ -23,13 +23,13 @@ module.exports = function(grunt) {
           'node_modules/conducto-client/lib/Client.js',
           'lib/index.js',
         ],
-        dest: 'yuilop.js'
+        dest: 'upptalk.js'
       }
     },
     uglify: {
       my_target: {
         files: {
-          'yuilop.min.js': ['yuilop.js']
+          'upptalk.min.js': ['upptalk.js']
         }
       }
     },
@@ -44,7 +44,7 @@ module.exports = function(grunt) {
           src:[
             'PhoneNumber.js/**/*.js',
             'Gruntfile.js',
-            // 'bin/yuilop', FIXME no support for shebang in esprima
+            // 'bin/upptalk', FIXME no support for shebang in esprima
             'lib/**/*.js',
             'test/**/*.js',
           ]
@@ -56,7 +56,7 @@ module.exports = function(grunt) {
         'package.json',
         'bower.json',
         'Gruntfile.js',
-        'bin/yuilop',
+        'bin/upptalk',
         'lib/**/*.js',
         'test/**/*.js',
       ],

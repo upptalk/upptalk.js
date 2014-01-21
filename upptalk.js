@@ -1804,7 +1804,7 @@ var PhoneNumber = (function (dataBase) {
     secure: true
   };
 
-  var Y = function(config) {
+  var UppTalk = function(config) {
     config = config || defaultConfig;
     if (config.apikey) {
       config.query = {
@@ -1819,7 +1819,7 @@ var PhoneNumber = (function (dataBase) {
       this.defineAction(i, actions[i]);
     }
   };
-  Y.prototype = Conducto.prototype;
+  UppTalk.prototype = Conducto.prototype;
 
   var actions = {
     upload: function(file, callback, progress) {
@@ -1828,9 +1828,9 @@ var PhoneNumber = (function (dataBase) {
   };
 
   if (typeof module !== 'undefined' && module.exports)
-    module.exports = Y;
+    module.exports = UppTalk;
   else
-    global.Y = Y;
+    global.UppTalk = UppTalk;
 
 })(this);
 

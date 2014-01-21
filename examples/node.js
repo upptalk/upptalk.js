@@ -1,6 +1,6 @@
 'use strict';
 
-var Y = require('..');
+var UppTalk = require('..');
 var config = require('../test/config');
 
 var LOG = function(header, what) {
@@ -11,7 +11,7 @@ var LOG = function(header, what) {
   console.log('');
 }
 
-var client = new Y();
+var client = new UppTalk();
 client.on('open', function() {
   LOG('OPEN')
   client.send('authenticate', {username: config.username, password: config.password}, function(err) {

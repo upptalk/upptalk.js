@@ -1,16 +1,16 @@
 {
-  "name": "yuilop.js",
-  "description": "yuilop client JavaScript library",
-  "version": "0.6.0",
+  "name": "upptalk.js",
+  "description": "UppTalk client JavaScript library",
+  "version": "0.6.1",
   "author": "Sonny Piers <sonny@yuilop.com>",
   "main": "lib/index.js",
-  "homepage": "https://github.com/yuilop/yuilop.js",
+  "homepage": "https://github.com/yuilop/upptalk.js",
   "bugs": {
-    "url": "https://github.com/yuilop/yuilop.js/issues"
+    "url": "https://github.com/yuilop/upptalk.js/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/yuilop/yuilop.js.git"
+    "url": "git://github.com/yuilop/upptalk.js.git"
   },
   "private": true,
   "scripts": {

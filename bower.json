@@ -1,7 +1,8 @@
 {
-  "name": "yuilop.js",
-  "version": "0.6.0",
-  "homepage": "https://github.com/yuilop/yuilop.js",
+  "name": "upptalk.js",
+  "description": "UppTalk client JavaScript library",
+  "version": "0.6.1",
+  "homepage": "https://github.com/yuilop/upptalk.js",
   "authors": [
     "Sonny Piers <sonny@yuilop.com>"
   ],
@@ -19,8 +20,7 @@
     "PhoneNumber.js",
     "test"
   ],
-  "description": "yuilop client JavaScript library",
-  "main": "yuilop.js",
+  "main": "upptalk.js",
   "private": true,
   "dependencies": {}
 }

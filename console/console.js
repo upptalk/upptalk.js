@@ -1,8 +1,8 @@
-(function() {
+(function(global) {
 
   var logsEl;
   var statusEl;
-  var y;
+  var client;
 
   var view = {
     setStatus: function(status) {
@@ -47,32 +47,32 @@
       var username = this.elements.username.value;
       var password = this.elements.password.value;
 
-      y = new Y({hostname: hostname, secure: secure, port: port});
-      y.on('open', function() {
+      client = new UppTalk({hostname: hostname, secure: secure, port: port});
+      client.on('open', function() {
         view.setStatus('open');
         y.emit('ping', function() {});
       });
-      y.on('close', function() {
+      client.on('close', function() {
         view.setStatus('closed');
       });
-      y.on('message', function(message) {
+      client.on('message', function(message) {
         view.log('in', message);
       });
-      y.on('send', function(message) {
+      client.on('send', function(message) {
         view.log('out', message);
       });
-      y.on('error', function(err) {
+      client.on('error', function(err) {
         console.log(err);
       });
 
 
-      y.open();
+      client.open();
 
       if (username && password) {
-        y.once('open', function() {
-          y.emit('authenticate', {username: username, password: password}, function() {});
+        client.once('open', function() {
+          client.emit('authenticate', {username: username, password: password}, function() {});
         });
       }
     });
   })
-})();
+})(this);
