@@ -1461,10 +1461,10 @@ var PhoneNumber = (function (dataBase) {
       this.emit('close');
     },
     close: function() {
-      if (!this.transport || this.transport.readyState === 3)
-        return this.onClose();
+      if (this.transport)
+        this.transport.close();
 
-      this.transport.close();
+      this.onClose();
     },
     onData: function(data) {
       if (typeof data === 'object' && 'data' in data)
@@ -1496,14 +1496,14 @@ var PhoneNumber = (function (dataBase) {
       if (payload !== undefined)
         notification.payload = payload;
 
-      this.sendMessage(notification);
+      this.sendNotification(notification);
     },
     send: function() {
       if (typeof arguments[0] === 'object') {
         if (typeof arguments[1] === 'function')
           this.sendRequest(arguments[0], arguments[1]);
         else
-          this.sendMessage(arguments[0]);
+          this.sendNotification(arguments[0]);
 
         return;
       }
@@ -1526,7 +1526,10 @@ var PhoneNumber = (function (dataBase) {
       if (!callback)
         this.notify(event, payload);
       else {
-        this.request(event, payload, callback);
+        if (payload !== undefined)
+          this.request(event, payload, callback);
+        else
+          this.request(event, callback);
       }
     },
     defineAction: function(name, callback) {
@@ -1572,13 +1575,12 @@ var PhoneNumber = (function (dataBase) {
         this.deleteResponseHandler(response.id);
       }
     },
-    // onNotification: function(notification) {
-    //   var handler = this.getNotificationHandler(notification.method);
-    //   if (handler)
-    //     return handler(notification.payload);
-    // },
+    sendNotification: function(notif) {
+      delete notif.id;
+      this.sendMessage(notif);
+    },
     sendRequest: function(request, callback) {
-      if (typeof request.id === 'undefined')
+      if (request.id === undefined)
         request.id = (this.lastId++).toString();
 
       if (callback)
@@ -1591,12 +1593,18 @@ var PhoneNumber = (function (dataBase) {
         method: method
       };
 
-      if (typeof arguments[1] === 'function')
+      if (typeof arguments[1] === 'function') {
         callback = arguments[1];
-      else {
-        request.payload = arguments[1];
-        callback = arguments[2];
+        payload = undefined;
       }
+      else {
+        callback = arguments[2];
+        payload = arguments[1];
+      }
+
+      if (payload !== undefined)
+        request.payload = payload;
+
       this.sendRequest(request, callback);
     },
     respond: function(request, error, result) {
@@ -1606,7 +1614,7 @@ var PhoneNumber = (function (dataBase) {
 
       if (error !== null && error !== undefined)
         response.error = error;
-      else if (typeof result !== 'undefined')
+      else if (result !== undefined)
         response.result = result;
 
       this.sendMessage(response);

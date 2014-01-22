@@ -3,7 +3,7 @@
   <head>
     <title>upptalk.js browser example</title>
     <meta charset="UTF-8"/>
-    <script type="application/javascript" src="../yuilop.js"/>
+    <script type="application/javascript" src="../upptalk.js"/>
     <script type="application/javascript" src="../test/config.js"/>
 
     <script>
@@ -15,7 +15,7 @@
         console.log('');
       }
 
-      var client = new Y();
+      var client = new UppTalk({apikey: 'foobar'});
       client.open();
       client.on('open', function() {
         LOG('OPEN')

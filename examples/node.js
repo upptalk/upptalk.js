@@ -11,7 +11,7 @@ var LOG = function(header, what) {
   console.log('');
 }
 
-var client = new UppTalk();
+var client = new UppTalk({apikey: 'foobar'});
 client.on('open', function() {
   LOG('OPEN')
   client.send('authenticate', {username: config.username, password: config.password}, function(err) {
@@ -45,3 +45,4 @@ client.on('close', function() {
 client.on('error', function(err) {
   LOG('ERRROR:', err);
 });
+client.open();
