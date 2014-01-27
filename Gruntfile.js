@@ -6,9 +6,6 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          'PhoneNumber.js/PhoneNumberMetaData.js',
-          'PhoneNumber.js/PhoneNumberNormalizer.js',
-          'PhoneNumber.js/PhoneNumber.js',
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
           'node_modules/conducto-client/node_modules/httpclient/lib/xhr.js',
           'node_modules/conducto-client/node_modules/httpclient/index.js',
@@ -17,6 +14,9 @@ module.exports = function(grunt) {
           'node_modules/conducto-client/node_modules/conducto-core/lib/utils.js',
           'node_modules/conducto-client/node_modules/conducto-core/lib/Connection.js',
           'node_modules/conducto-client/lib/Client.js',
+          'lib/PhoneNumber/PhoneNumberMetaData.js',
+          'lib/PhoneNumber/PhoneNumberNormalizer.js',
+          'lib/PhoneNumber/PhoneNumber.js',
           'lib/index.js',
         ],
         dest: 'dist/upptalk.js'
@@ -38,12 +38,9 @@ module.exports = function(grunt) {
       all:{
         files:{
           src:[
-            // '*.js', FIXME https://github.com/ariya/grunt-jsvalidate/issues/9
-            'PhoneNumber.js/**/*.js',
-            'Gruntfile.js',
-            //
+            '*.js',
             'dist/**/*.js',
-            // 'bin/upptalk', FIXME no support for shebang in esprima
+            // 'bin/upptalk', FIXME shebang scares esprima
             'lib/**/*.js',
             'test/**/*.js',
             'example/**/*.js',
@@ -56,7 +53,7 @@ module.exports = function(grunt) {
         '*.json',
         '*.js',
         'bin/upptalk',
-        'lib/**/*.js',
+        'lib/*.js',
         'test/**/*.js',
         'example/**/*.js',
       ],

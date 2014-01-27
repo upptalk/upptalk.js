@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>upptalk.js console</title>
+    <title>UppTalk console</title>
     <meta charset="UTF-8"/>
     <link type="text/css" rel="stylesheet" href="console.css"/>
     <script type="application/javascript" src="../dist/upptalk.js"/>
@@ -10,15 +10,15 @@
   <body>
     <div id="header">
       <form id="connect">
-        <div>
+        <div hidden="hidden">
           <label for="host">Host</label>
           <input type="text" required="required" name="hostname" placeholder="happy.dev.ym.ms" value="happy.dev.ym.ms"/>
         </div>
-        <div>
+        <div hidden="hidden">
           <label for="secure">Port</label>
           <input type="text" required="required" name="port" placeholder="443" value="443"/>
         </div>
-        <div>
+        <div hidden="hidden">
           <label for="secure">Secure</label>
           <input type="checkbox" required="required" name="secure" checked="checked"/>
         </div>
@@ -28,11 +28,11 @@
         </div>
         <div>
           <label for="secure">Username</label>
-          <input type="text" name="username" required="required" placeholder=""/>
+          <input type="text" name="username" placeholder=""/>
         </div>
         <div>
           <label for="secure">Password</label>
-          <input type="password" name="password" required="required" placeholder=""/>
+          <input type="password" name="password" placeholder=""/>
         </div>
         <input type="submit" value="connect"/>
       </form>

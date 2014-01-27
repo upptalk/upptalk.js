@@ -43,7 +43,7 @@ for (var i = 2; i < process.argv.length; i++) {
 
 var client = new UppTalk();
 DEBUG('OPENING');
-client.open('happy.dev.ym.ms', function() {
+client.open(function() {
   DEBUG('OPEN');
   if (username && password) {
     DEBUG('AUTHENTICATING');

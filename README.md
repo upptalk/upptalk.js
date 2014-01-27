@@ -12,7 +12,7 @@ UppTalk client JavaScript library
 ## Node.js
 ##### Install
 ```shell
-npm install git+ssh://git@github.com:upptalk/upptalk.js --production
+npm install upptalk
 ```
 ##### Include
 ```javascript
@@ -21,11 +21,11 @@ var UppTalk = require('upptalk');
 ## Browser
 ##### Install
 ```shell
-bower install git@github.com:upptalk/upptalk.js
+bower install upptalk
 ```
 ##### Include
 ```xml
-<script src="bower_components/upptalk.js/upptalk.js"></script>
+<script src="bower_components/upptalk.js/dist/upptalk.js"></script>
 ```
 
 ## API
