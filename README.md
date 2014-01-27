@@ -3,10 +3,16 @@ upptalk.js
 
 UppTalk client JavaScript library
 
+[![NPM version](https://badge.fury.io/js/upptalk.png)](https://npmjs.org/package/upptalk)
+[![Build Status](https://travis-ci.org/upptalk/upptalk.js.png?branch=master)](https://travis-ci.org/upptalk/upptalk.js)
+
+[![Dependency Status](https://david-dm.org/upptalk/upptalk.js.png)](https://david-dm.org/upptalk/upptalk.js)
+[![devDependency Status](https://david-dm.org/upptalk/upptalk.js/dev-status.png)](https://david-dm.org/upptalk/upptalk.js#info=devDependencies)
+
 ## Node.js
 ##### Install
 ```shell
-npm install git+ssh://git@github.com:yuilop/upptalk.js
+npm install git+ssh://git@github.com:upptalk/upptalk.js --production
 ```
 ##### Include
 ```javascript
@@ -15,7 +21,7 @@ var UppTalk = require('upptalk');
 ## Browser
 ##### Install
 ```shell
-bower install git@github.com:yuilop/upptalk.js
+bower install git@github.com:upptalk/upptalk.js
 ```
 ##### Include
 ```xml
@@ -289,7 +295,7 @@ client.send('phonenumbers', number, function(err, phonenumbers) {
   //phonenumbers.yuilop is the virtual phone number
 
   //phonenumbers.real must always be used as the user id even for + numbers
-  //if nor real or yuilop is present, it means the number isn't registed
+  //if nor real or yuilop is present, it means the number isn't registered
 });
 ```
 ### Contacts
