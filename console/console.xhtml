@@ -4,17 +4,36 @@
     <title>upptalk.js console</title>
     <meta charset="UTF-8"/>
     <link type="text/css" rel="stylesheet" href="console.css"/>
-    <script type="application/javascript" src="../upptalk.js"/>
+    <script type="application/javascript" src="../dist/upptalk.js"/>
     <script type="application/javascript" src="console.js"/>
   </head>
   <body>
     <div id="header">
       <form id="connect">
-        <input type="text" required="required" name="hostname" placeholder="happy.dev.ym.ms" value="happy.dev.ym.ms"/>
-        <input type="text" required="required" name="port" placeholder="443" value="443"/>
-        <input type="checkbox" required="required" name="secure" checked="checked"/>
-        <input type="text" name="username" placeholder="username"/>
-        <input type="password" name="password" placeholder="password"/>
+        <div>
+          <label for="host">Host</label>
+          <input type="text" required="required" name="hostname" placeholder="happy.dev.ym.ms" value="happy.dev.ym.ms"/>
+        </div>
+        <div>
+          <label for="secure">Port</label>
+          <input type="text" required="required" name="port" placeholder="443" value="443"/>
+        </div>
+        <div>
+          <label for="secure">Secure</label>
+          <input type="checkbox" required="required" name="secure" checked="checked"/>
+        </div>
+        <div>
+          <label for="secure">API Key</label>
+          <input type="text" name="apikey" required="required" placeholder=""/>
+        </div>
+        <div>
+          <label for="secure">Username</label>
+          <input type="text" name="username" required="required" placeholder=""/>
+        </div>
+        <div>
+          <label for="secure">Password</label>
+          <input type="password" name="password" required="required" placeholder=""/>
+        </div>
         <input type="submit" value="connect"/>
       </form>
       <p>Status: <span id="status">closed</span></p>

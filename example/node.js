@@ -9,11 +9,11 @@ var LOG = function(header, what) {
   if (what)
     console.log(what);
   console.log('');
-}
+};
 
-var client = new UppTalk({apikey: 'foobar'});
+var client = new UppTalk({apikey: config.apikey});
 client.on('open', function() {
-  LOG('OPEN')
+  LOG('OPEN');
   client.send('authenticate', {username: config.username, password: config.password}, function(err) {
     if (err)
       return console.log(err);
@@ -40,8 +40,8 @@ client.on('send', function(stanza) {
   LOG('OUT:', stanza);
 });
 client.on('close', function() {
-  LOG('CLOSED')
-})
+  LOG('CLOSED');
+});
 client.on('error', function(err) {
   LOG('ERRROR:', err);
 });

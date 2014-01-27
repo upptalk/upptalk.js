@@ -3,10 +3,6 @@
 module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    clean: [
-      'upptalk.js',
-      'upptalk.min.js'
-    ],
     concat: {
       dist: {
         src: [
@@ -23,13 +19,13 @@ module.exports = function(grunt) {
           'node_modules/conducto-client/lib/Client.js',
           'lib/index.js',
         ],
-        dest: 'upptalk.js'
+        dest: 'dist/upptalk.js'
       }
     },
     uglify: {
       my_target: {
         files: {
-          'upptalk.min.js': ['upptalk.js']
+          'dist/upptalk.min.js': ['dist/upptalk.js']
         }
       }
     },
@@ -39,26 +35,30 @@ module.exports = function(grunt) {
         esprimaOptions: {},
         verbose: true
       },
-      targetName:{
+      all:{
         files:{
           src:[
+            // '*.js', FIXME https://github.com/ariya/grunt-jsvalidate/issues/9
             'PhoneNumber.js/**/*.js',
             'Gruntfile.js',
+            //
+            'dist/**/*.js',
             // 'bin/upptalk', FIXME no support for shebang in esprima
             'lib/**/*.js',
             'test/**/*.js',
+            'example/**/*.js',
           ]
         }
       }
     },
     jshint: {
       files:[
-        'package.json',
-        'bower.json',
-        'Gruntfile.js',
+        '*.json',
+        '*.js',
         'bin/upptalk',
         'lib/**/*.js',
         'test/**/*.js',
+        'example/**/*.js',
       ],
       options: {
         jshintrc: '.jshintrc'
@@ -92,7 +92,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-jsvalidate');

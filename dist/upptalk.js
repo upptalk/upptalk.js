@@ -1796,15 +1796,10 @@ var PhoneNumber = (function (dataBase) {
   'use strict';
 
   var Conducto;
-  var request;
-  if (typeof module !== 'undefined' && module.exports) {
+  if (typeof module !== 'undefined' && module.exports)
     Conducto = require('conducto-client');
-    request = require('request.js');
-  }
-  else {
+  else
     Conducto = global.conducto.Client;
-    request = global.request;
-  }
 
   var defaultConfig = {
     host: 'happy.dev.ym.ms',
