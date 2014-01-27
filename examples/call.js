@@ -60,7 +60,6 @@
       var username = this.elements['username'].value;
 
       client = new UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms'});
-      client.keepalive = 0;
       client.username = username;
       client.password = password;
       client.open(function(err) {
