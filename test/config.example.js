@@ -8,7 +8,12 @@
     apikey: '',
     hostname: 'localhost',
     port: 9595,
-    secure: false
+    secure: false,
+    turn: {
+      url: '',
+      username: '',
+      credential: ''
+    }
   };
 
   if (typeof module !== 'undefined' && module.exports)

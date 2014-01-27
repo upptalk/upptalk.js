@@ -1835,6 +1835,16 @@ var PhoneNumber = (function (dataBase) {
     for (var j in actions) {
       this.defineAction(j, actions[j]);
     }
+
+    //webrtc
+    this.on('webrtc', function(p) {
+      //supported
+      if (this.call)
+        this.handleWebRTCPacket(p);
+      //unsupported
+      else
+        this.send('webrtc', {id: p.id, user: p.user, type: 'error'});
+    });
   };
   UppTalk.prototype = Conducto.prototype;
 
