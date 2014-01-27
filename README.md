@@ -25,7 +25,7 @@ bower install upptalk
 ```
 ##### Include
 ```xml
-<script src="bower_components/upptalk.js/dist/upptalk.js"></script>
+<script src="bower_components/upptalk/dist/upptalk.js"></script>
 ```
 
 ## API
