@@ -2,7 +2,6 @@
 
   'use strict';
 
-  var pc;
   var client;
   var localVideo;
   var remoteVideo;
@@ -43,11 +42,12 @@
           });
           call.on('reject', function() {
             console.log('call rejected');
-          })
+          });
         },
         //error
         function(err) {
-          alert('error');
+          console.error(err);
+          global.alert('error');
         }
       );
     });
@@ -59,13 +59,14 @@
       var password = this.elements['password'].value;
       var username = this.elements['username'].value;
 
-      client = new UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms'});
+      client = new global.UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms'});
       client.username = username;
       client.password = password;
       client.open(function(err) {
         if (err) {
           console.log(err);
-          return statusEl.textContent = 'ERROR';
+          statusEl.textContent = 'ERROR';
+          return;
         }
 
         statusEl.textContent = 'OPEN';
@@ -73,13 +74,15 @@
         this.send('authenticate', {username: this.username, password: this.password}, function(err) {
           if (err) {
             console.log(err);
-            return statusEl.textContent = 'AUTHENTICATION FAILED';
+            statusEl.textContent = 'AUTHENTICATION FAILED';
+            return;
           }
 
           statusEl.textContent = 'AUTHENTICATED';
+        });
       });
       client.once('close', function() {
-        statusEl.textContent = 'COSED';
+        statusEl.textContent = 'CLOSED';
       });
       client.on('error', function(err) {
         console.log(err);
@@ -99,7 +102,6 @@
           console.trace(err);
         });
       });
-    });
     });
   });
 })(this);
