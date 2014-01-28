@@ -1,8 +1,13 @@
+console
+example
+PhoneNumber.js
 test
+.gitignore
 .jshintignore
 .jshintrc
-.travis.yml
-.gitignore
 .npmignore
+.travis.yml
+bower.json
 Gruntfile.js
-examples
+upptalk.js
+upptalk.min.js

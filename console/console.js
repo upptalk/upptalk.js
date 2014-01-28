@@ -34,7 +34,7 @@
 
       var message = JSON.parse(this.elements.data.value);
 
-      y.send(message);
+      client.send(message);
     });
 
     var connectEl = document.getElementById('connect');
@@ -46,11 +46,12 @@
       var port = this.elements.port.value;
       var username = this.elements.username.value;
       var password = this.elements.password.value;
+      var apikey = this.elements.apikey.value;
 
-      client = new UppTalk({hostname: hostname, secure: secure, port: port});
+      client = new UppTalk({apikey: apikey, hostname: hostname, secure: secure, port: port});
       client.on('open', function() {
         view.setStatus('open');
-        y.emit('ping', function() {});
+        client.send('ping', function() {});
       });
       client.on('close', function() {
         view.setStatus('closed');

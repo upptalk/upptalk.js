@@ -1,0 +1,1 @@
+This is a custom build of [PhoneNumber.js](https://github.com/andreasgal/PhoneNumber.js) written by Andres Gal and licensed under the Apache License, Version 2.0.
