@@ -18,6 +18,7 @@ module.exports = function(grunt) {
           'lib/PhoneNumber/PhoneNumberNormalizer.js',
           'lib/PhoneNumber/PhoneNumber.js',
           'lib/index.js',
+          'lib/webrtc.js',
         ],
         dest: 'dist/upptalk.js'
       }
