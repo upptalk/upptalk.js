@@ -6,7 +6,7 @@
     username: '',
     password: '',
     apikey: '',
-    hostname: 'localhost',
+    host: 'localhost',
     port: 9595,
     secure: false,
     turn: {

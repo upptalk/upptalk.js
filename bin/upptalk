@@ -3,14 +3,14 @@
 'use strict';
 
 var UppTalk = require('..');
-var debug = true;
+var debug = false;
 var DEBUG = function(msg) {
   if (debug)
     console.log(msg);
 };
 
 if (process.argv.length < 3) {
-  console.log('Usage: upptalk (username:password) method (payload)');
+  console.log('Usage: upptalk (-v) (--apikey=YOURAPIKEY) (username:password) method (payload)');
   process.exit(1);
 }
 
@@ -18,10 +18,21 @@ var username;
 var password;
 var method;
 var payload;
+var apikey;
 for (var i = 2; i < process.argv.length; i++) {
   var arg = process.argv[i];
+  //verbose
+  if (arg === '-v') {
+    debug = true;
+    continue;
+  }
+  //apikey
+  if (arg.indexOf('--apikey=') === 0) {
+    apikey = arg.split('--apikey=')[1];
+    continue;
+  }
   //credentials
-  if (i === 2 && arg.indexOf(':') > -1) {
+  if (!username && arg.indexOf(':') > -1) {
     var creds = arg.split(':');
     username = creds[0];
     password = creds[1];
@@ -41,7 +52,12 @@ for (var i = 2; i < process.argv.length; i++) {
   payload[keyvalue[0]] = keyvalue[1];
 }
 
-var client = new UppTalk();
+var client;
+if (apikey)
+  client = new UppTalk({apikey: apikey});
+else
+  client = new UppTalk();
+
 DEBUG('OPENING');
 client.open(function() {
   DEBUG('OPEN');
@@ -60,28 +76,31 @@ client.open(function() {
     call(method, payload);
   }
 });
+client.once('close', function() {
+  DEBUG('CLOSE');
+  process.exit(1);
+});
 
 
 var done = function(err, res) {
   DEBUG('RESPONSE');
   if (err) {
-    console.log('Error:');
-    console.log(err);
+    console.log('ERROR:', err);
   }
   else {
-    console.log('Success');
-    if (res)
-      console.log(res);
+    console.log('SUCESS:', res);
   }
+  DEBUG('CLOSING');
   client.close();
 };
 
 var call = function(method, payload) {
-  DEBUG('CALLING');
+  DEBUG('SENDING');
   if (payload) {
     client.send(method, payload, done);
   }
   else {
     client.send(method, done);
   }
+  DEBUG('SENT');
 };
