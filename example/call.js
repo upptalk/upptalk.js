@@ -92,7 +92,20 @@
       client.on('call', function(call) {
         statusEl.textContent = 'RINGING';
 
-        call.accept();
+        // navigator.getUserMedia({video: true, audio: true},
+          //success
+          // function (stream) {
+            // localVideo.src = URL.createObjectURL(stream);
+            // call.localstream = stream;
+            call.accept();
+          // },
+          //error
+        //   function(err) {
+        //     console.error(err);
+        //     global.alert('error');
+        //   }
+        // );
+
         call.once('localstream', function(stream) {
           localVideo.src = URL.createObjectURL(stream);
         });

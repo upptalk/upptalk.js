@@ -1938,7 +1938,14 @@ var PhoneNumber = (function (dataBase) {
     ]
   };
 
+  var debug = function() {
+    // return;
+    console.debug.call(console, arguments)
+  };
+
+
   var Call = function(client, user) {
+    debug('new call instance');
     this.id = Math.random().toString();
     this.user = user;
     this.client = client;
@@ -1946,7 +1953,7 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype = EventEmitter.prototype;
   Call.prototype.init = function(callback) {
-
+    debug('init')
     var call = this;
 
     var configuration = {
@@ -1965,13 +1972,16 @@ var PhoneNumber = (function (dataBase) {
     this.peerConnection = pc;
 
     pc.onicecandidate = function(evt) {
+      debug('send ice candidate');
       call.send({candidate: evt.candidate});
     };
     pc.onaddstream = function(evt) {
+      debug('remote stream');
       call.emit('remotestream', evt.stream);
     };
 
     if (this.localstream) {
+      debug('got local stream');
       pc.addStream(this.localstream);
       if (callback)
         callback();
@@ -1980,6 +1990,7 @@ var PhoneNumber = (function (dataBase) {
       navigator.getUserMedia({video: true, audio: true},
         //success
         function (stream) {
+          debug('got local stream');
           call.emit('localstream', stream);
           pc.addStream(stream);
           if (callback)
@@ -1992,55 +2003,55 @@ var PhoneNumber = (function (dataBase) {
       );
     }
   };
-  Call.prototype.accept = function() {
+  Call.prototype.accept = function(stream) {
+    this.localstream = stream;
+    debug('accept');
+    this.client.send('webrtc', {id: this.id, user: this.user, type: 'accept'});
+
     var call = this;
+
     this.init(function() {
-      call.peerConnection.createAnswer(
-        //success
-        function(desc) {
-          call.send({type: 'accept', sdp: desc});
-          call.onlocaldescription(desc);
-        },
-        //error required by firefox 26
-        function(err) {
-          call.emit('error', err);
-        }
-      );
+
     });
   };
   Call.prototype.reject = function() {
+    debug('reject');
     this.send({type: 'reject'});
     delete this.client.calls[this.id];
   };
   Call.prototype.hangup = function() {
+    debug('hangup');
     this.send({type: 'hangup'});
     delete this.client.calls[this.id];
   };
   Call.prototype.offer = function() {
-    var call = this;
-    this.init(function() {
-      call.peerConnection.createOffer(
-        //success
-        function(desc) {
-          call.send({type: 'offer', sdp: desc});
-          call.onlocaldescription(desc);
-        },
-        //error required by firefox 26
-        function(err) {
-          call.emit('error', err);
-        }
-      );
-    });
+    debug('offer');
+    this.send({type: 'offer'});
   };
   Call.prototype.oncandidate = function(candidate) {
+    debug('receive ice candidate');
     var RIC = new RTCIceCandidate(candidate);
     this.peerConnection.addIceCandidate(RIC);
   };
   Call.prototype.onlocaldescription = function(desc) {
+    debug('local sdp');
     this.peerConnection.setLocalDescription(desc);
+    this.send({sdp: desc});
   };
   Call.prototype.onremotedescription = function(desc) {
+    debug('remote sdp');
     this.peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
+    var call = this;
+    this.peerConnection.createAnswer(
+      //success
+      function(desc) {
+        call.onlocaldescription(desc);
+      },
+      //error required by firefox 26
+      function(err) {
+        call.emit('error', err);
+      }
+    );
   };
   Call.prototype.send = function(m) {
     m.id = this.id;
@@ -2048,13 +2059,31 @@ var PhoneNumber = (function (dataBase) {
     this.client.send('webrtc', m);
   };
   Call.prototype.onaccept = function() {
+    debug('on accept');
     this.emit('accept');
+
+    var call = this;
+
+    this.init(function() {
+      call.peerConnection.createOffer(
+        //success
+        function(desc) {
+          call.onlocaldescription(desc);
+        },
+        //error required by firefox 26
+        function(err) {
+          call.emit('error', err);
+        }
+      );
+    });
   };
   Call.prototype.onreject = function() {
+    debug('on reject');
     this.emit('reject');
     delete this.client.calls[this.id];
   };
   Call.prototype.onhangup = function() {
+    debug('on hangup');
     this.emit('hangup');
     delete this.client.calls[this.id];
   };
@@ -2103,11 +2132,12 @@ var PhoneNumber = (function (dataBase) {
     }
   };
   UppTalk.prototype.call = function(username, stream) {
+    debug('call');
     var call = new Call(this, username);
+    call.localstream = stream;
     this.calls = this.calls || {};
     this.calls[call.id] = call;
     call.offer();
-    call.localstream = stream;
     return call;
   };
 
