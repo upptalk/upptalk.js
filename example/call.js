@@ -7,6 +7,7 @@
   var remoteVideo;
   var user;
   var statusEl;
+  var config = global.config;
 
   document.addEventListener('DOMContentLoaded', function() {
     var loginForm = document.getElementById('login');
@@ -59,7 +60,7 @@
       var password = this.elements['password'].value;
       var username = this.elements['username'].value;
 
-      client = new global.UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms'});
+      client = new global.UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms', turn: config.turn});
       client.username = username;
       client.password = password;
       client.open(function(err) {

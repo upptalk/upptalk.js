@@ -1804,7 +1804,8 @@ var PhoneNumber = (function (dataBase) {
   var defaultConfig = {
     host: 'happy.dev.ym.ms',
     port: 443,
-    secure: true
+    secure: true,
+    turn: {}
   };
 
   var UppTalk = function(config) {
@@ -1831,15 +1832,19 @@ var PhoneNumber = (function (dataBase) {
       this.defineAction(j, actions[j]);
     }
 
-    //webrtc
-    this.on('webrtc', function(p) {
-      //supported
-      if (this.call)
+    //webrtc enabled
+    if (this.call) {
+      this.turn = config.turn;
+      this.on('webrtc', function(p) {
         this.handleWebRTCPacket(p);
-      //unsupported
-      else if (p.type !== 'error')
-        this.send('webrtc', {id: p.id, user: p.user, type: 'error'});
-    });
+      });
+    }
+    else {
+      this.on('webrtc', function(p) {
+        if (p.type !== 'error')
+          this.send('webrtc', {id: p.id, user: p.user, type: 'error'});
+      });
+    }
   };
   UppTalk.prototype = Conducto.prototype;
 
@@ -1895,37 +1900,37 @@ var PhoneNumber = (function (dataBase) {
   )
     return;
 
-  var configuration = {
-    "iceServers": [
-      // {
-      //   "url": "stun:stun.services.mozilla.com"
-      // },
-      // {
-      //   "url": "stun:stun.ym.ms"
-      // },
-      {
-        url: global.config.turn.url,
-        username: global.config.turn.username,
-        credential: global.config.turn.credential
-      }
-      //sturn
-      // {
-      //   "url": "stun:stun.ym.ms"
-      // },
-      //turn udp
-      // {
-      //   'url': 'turn:dev.ym.ms:3478?transport=udp',
-      //   "username": "sonny",
-      //   "credential": "foobar"
-      // },
-      //turn tcp
-      // {
-      //   'url': 'turn:turn:dev.ym.ms:3478?transport=tcp',
-      //   "username": "sonny",
-      //   "credential": "foobar"
-      // }
-    ]
-  };
+  // var configuration = {
+  //   "iceServers": [
+  //     // {
+  //     //   "url": "stun:stun.services.mozilla.com"
+  //     // },
+  //     // {
+  //     //   "url": "stun:stun.ym.ms"
+  //     // },
+  //     {
+  //       url: global.config.turn.url,
+  //       username: global.config.turn.username,
+  //       credential: global.config.turn.credential
+  //     }
+  //     //sturn
+  //     // {
+  //     //   "url": "stun:stun.ym.ms"
+  //     // },
+  //     //turn udp
+  //     // {
+  //     //   'url': 'turn:dev.ym.ms:3478?transport=udp',
+  //     //   "username": "sonny",
+  //     //   "credential": "foobar"
+  //     // },
+  //     //turn tcp
+  //     // {
+  //     //   'url': 'turn:turn:dev.ym.ms:3478?transport=tcp',
+  //     //   "username": "sonny",
+  //     //   "credential": "foobar"
+  //     // }
+  //   ]
+  // };
   var options = {
     optional: [
       {DtlsSrtpKeyAgreement: true}, //required to interop Firefox and Chrome
@@ -1943,6 +1948,19 @@ var PhoneNumber = (function (dataBase) {
   Call.prototype.init = function(callback) {
 
     var call = this;
+
+    var configuration = {
+      "iceServers": [
+        {
+          url: call.client.turn.url,
+          username: call.client.turn.username,
+          credential: call.client.turn.credential
+        }
+      ]
+    };
+
+    console.log('PeerConnection configuration', configuration);
+
     var pc = new RTCPeerConnection(configuration, options);
     this.peerConnection = pc;
 
