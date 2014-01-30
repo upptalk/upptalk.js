@@ -1993,14 +1993,12 @@ var PhoneNumber = (function (dataBase) {
     }
   };
   Call.prototype.accept = function() {
-    this.client.send('webrtc', {id: this.id, user: this.user, type: 'accept'});
-
     var call = this;
-
     this.init(function() {
       call.peerConnection.createAnswer(
         //success
         function(desc) {
+          call.send({type: 'accept', sdp: desc});
           call.onlocaldescription(desc);
         },
         //error required by firefox 26
@@ -2019,7 +2017,20 @@ var PhoneNumber = (function (dataBase) {
     delete this.client.calls[this.id];
   };
   Call.prototype.offer = function() {
-    this.send({type: 'offer'});
+    var call = this;
+    this.init(function() {
+      call.peerConnection.createOffer(
+        //success
+        function(desc) {g
+          call.send({type: 'offer', sdp: desc});
+          call.onlocaldescription(desc);
+        },
+        //error required by firefox 26
+        function(err) {
+          call.emit('error', err);
+        }
+      );
+    });
   };
   Call.prototype.oncandidate = function(candidate) {
     var RIC = new RTCIceCandidate(candidate);
@@ -2027,7 +2038,6 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype.onlocaldescription = function(desc) {
     this.peerConnection.setLocalDescription(desc);
-    this.send({sdp: desc});
   };
   Call.prototype.onremotedescription = function(desc) {
     this.peerConnection.setRemoteDescription(new RTCSessionDescription(desc));
@@ -2039,21 +2049,6 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype.onaccept = function() {
     this.emit('accept');
-
-    var call = this;
-
-    this.init(function() {
-      call.peerConnection.createOffer(
-        //success
-        function(desc) {
-          call.onlocaldescription(desc);
-        },
-        //error required by firefox 26
-        function(err) {
-          call.emit('error', err);
-        }
-      );
-    });
   };
   Call.prototype.onreject = function() {
     this.emit('reject');
