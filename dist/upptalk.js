@@ -2021,7 +2021,7 @@ var PhoneNumber = (function (dataBase) {
     this.init(function() {
       call.peerConnection.createOffer(
         //success
-        function(desc) {g
+        function(desc) {
           call.send({type: 'offer', sdp: desc});
           call.onlocaldescription(desc);
         },
