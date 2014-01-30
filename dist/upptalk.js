@@ -1837,7 +1837,7 @@ var PhoneNumber = (function (dataBase) {
       if (this.call)
         this.handleWebRTCPacket(p);
       //unsupported
-      else
+      else if (p.type !== 'error')
         this.send('webrtc', {id: p.id, user: p.user, type: 'error'});
     });
   };
