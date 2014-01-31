@@ -9,26 +9,42 @@
   var statusEl;
   var config = global.config;
 
-  var onCall = function(call) {
+
+  //handle in and out calls
+  var handleCall = function(call) {
+
+    var local;
+    var remote;
+
     call.once('localstream', function(stream) {
+      local = stream;
       localVideo.src = URL.createObjectURL(stream);
     });
     call.once('remotestream', function(stream) {
+      remote = stream;
       remoteVideo.src = URL.createObjectURL(stream);
     });
-    call.on('error', function(err) {
+    call.once('error', function(err) {
       statusEl.textContent = 'ERROR';
       console.log(err);
     });
-    call.on('accept', function() {
+    call.once('accept', function() {
       statusEl.textContent = 'ACCEPTED';
     });
-    call.on('reject', function() {
+    call.once('reject', function() {
       statusEl.textContent = 'REJECTED';
     });
-    call.on('hangup', function() {
+    call.once('hangup', function() {
       statusEl.textContent = 'HANGUP';
+
+      if (remote)
+        remote.stop();
+      URL.revokeObjectURL(remoteVideo.src);
       remoteVideo.src = '';
+
+      if (local)
+        local.stop();
+      URL.revokeObjectURL(localVideo.src);
       localVideo.src = '';
     });
   };
