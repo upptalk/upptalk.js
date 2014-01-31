@@ -37,8 +37,10 @@
     call.once('hangup', function() {
       statusEl.textContent = 'HANGUP';
 
+      //important to stop the stream
       if (remote)
         remote.stop();
+      //important to revoke the object url
       URL.revokeObjectURL(remoteVideo.src);
       remoteVideo.src = '';
 
@@ -67,7 +69,7 @@
         //success
         // function (stream) {
       var call = client.call(user);
-      onCall(call);
+      handleCall(call);
           // localVideo.src = URL.createObjectURL(stream);
 
 
@@ -125,7 +127,7 @@
             // localVideo.src = URL.createObjectURL(stream);
             // call.accept(stream);
         call.accept();
-        onCall(call);
+        handleCall(call);
           // },
           //error
         //   function(err) {
