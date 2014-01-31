@@ -9,6 +9,30 @@
   var statusEl;
   var config = global.config;
 
+  var onCall = function(call) {
+    call.once('localstream', function(stream) {
+      localVideo.src = URL.createObjectURL(stream);
+    });
+    call.once('remotestream', function(stream) {
+      remoteVideo.src = URL.createObjectURL(stream);
+    });
+    call.on('error', function(err) {
+      statusEl.textContent = 'ERROR';
+      console.log(err);
+    });
+    call.on('accept', function() {
+      statusEl.textContent = 'ACCEPTED';
+    });
+    call.on('reject', function() {
+      statusEl.textContent = 'REJECTED';
+    });
+    call.on('hangup', function() {
+      statusEl.textContent = 'HANGUP';
+      remoteVideo.src = '';
+      localVideo.src = '';
+    });
+  };
+
   document.addEventListener('DOMContentLoaded', function() {
     var loginForm = document.getElementById('login');
     var callForm = document.getElementById('call');
@@ -27,23 +51,10 @@
         //success
         // function (stream) {
       var call = client.call(user);
+      onCall(call);
           // localVideo.src = URL.createObjectURL(stream);
 
-      call.once('localstream', function(stream) {
-        localVideo.src = URL.createObjectURL(stream);
-      });
-      call.once('remotestream', function(stream) {
-        remoteVideo.src = URL.createObjectURL(stream);
-      });
-      call.on('error', function(err) {
-        console.log(err);
-      });
-      call.on('accept', function() {
-        console.log('call accepted');
-      });
-      call.on('reject', function() {
-        console.log('call rejected');
-      });
+
         // },
         // //error
         // function(err) {
@@ -98,6 +109,7 @@
             // localVideo.src = URL.createObjectURL(stream);
             // call.accept(stream);
         call.accept();
+        onCall(call);
           // },
           //error
         //   function(err) {
@@ -106,15 +118,6 @@
         //   }
         // );
 
-        call.once('localstream', function(stream) {
-          localVideo.src = URL.createObjectURL(stream);
-        });
-        call.once('remotestream', function(stream) {
-          remoteVideo.src = URL.createObjectURL(stream);
-        });
-        call.on('error', function(err) {
-          console.trace(err);
-        });
       });
     });
   });

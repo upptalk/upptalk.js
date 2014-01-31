@@ -1969,6 +1969,19 @@ var PhoneNumber = (function (dataBase) {
     var pc = new RTCPeerConnection(configuration, options);
     this.peerConnection = pc;
 
+    pc.oniceconnectionstatechange = function() {
+      var iceState = pc.iceConnectionState || pc.iceState;
+      debug('ice connection state', iceState);
+
+
+      if (iceState === 'disconnected' || iceState === 'closed') {
+        call.onhangup();
+      }
+    };
+    pc.onsignalingstatechange = function() {
+      debug('signal state', pc.signalingState);
+    };
+
     pc.onicecandidate = function(evt) {
       debug('send ice candidate');
       call.send({candidate: evt.candidate});
@@ -2020,6 +2033,10 @@ var PhoneNumber = (function (dataBase) {
   Call.prototype.hangup = function() {
     debug('hangup');
     this.send({type: 'hangup'});
+
+    if (this.PeerConnection)
+      this.PeerConnection.close();
+
     delete this.client.calls[this.id];
   };
   Call.prototype.offer = function() {
@@ -2077,12 +2094,19 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype.onreject = function() {
     debug('on reject');
+
     this.emit('reject');
+
     delete this.client.calls[this.id];
   };
   Call.prototype.onhangup = function() {
     debug('on hangup');
+
     this.emit('hangup');
+
+    if (this.peerConnection)
+      this.peerConnection.close();
+
     delete this.client.calls[this.id];
   };
 
