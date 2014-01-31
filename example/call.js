@@ -9,6 +9,7 @@
   var statusEl;
   var config = global.config;
 
+  var options = {video: true, audio: true};
 
   //handle in and out calls
   var handleCall = function(call) {
@@ -68,7 +69,7 @@
       // navigator.getUserMedia({video: true, audio: true},
         //success
         // function (stream) {
-      var call = client.call(user);
+      var call = client.call(user, options);
       handleCall(call);
           // localVideo.src = URL.createObjectURL(stream);
 
@@ -126,7 +127,7 @@
           // function (stream) {
             // localVideo.src = URL.createObjectURL(stream);
             // call.accept(stream);
-        call.accept();
+        call.accept(options);
         handleCall(call);
           // },
           //error

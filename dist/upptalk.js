@@ -1998,7 +1998,7 @@ var PhoneNumber = (function (dataBase) {
         callback();
     }
     else {
-      navigator.getUserMedia({video: true, audio: true},
+      navigator.getUserMedia(call.options,
         //success
         function (stream) {
           debug('got local stream');
@@ -2014,10 +2014,10 @@ var PhoneNumber = (function (dataBase) {
       );
     }
   };
-  Call.prototype.accept = function(stream) {
+  Call.prototype.accept = function(opt) {
     debug('accept');
-    if (stream)
-      this.localstream = stream;
+
+    this.handleOptions(opt);
 
     var call = this;
 
@@ -2109,7 +2109,15 @@ var PhoneNumber = (function (dataBase) {
 
     delete this.client.calls[this.id];
   };
+  Call.prototype.handleOptions = function(opt) {
+    opt = opt || {video: true, audio: true};
 
+    //FIXME, there must be a better way to check if it's a Stream
+    if (opt.close)
+      this.localstream = opt;
+    else
+      this.options = opt;
+  };
 
   UppTalk.prototype.handleWebRTCPacket = function(p) {
     if (typeof p.user !== 'string' || typeof p.id !== 'string')
@@ -2153,11 +2161,12 @@ var PhoneNumber = (function (dataBase) {
       call.oncandidate(p.candidate);
     }
   };
-  UppTalk.prototype.call = function(username, stream) {
+  UppTalk.prototype.call = function(username, opt) {
     debug('call');
     var call = new Call(this, username);
-    if (stream)
-      call.localstream = stream;
+
+    call.handleOptions(opt);
+
     this.calls = this.calls || {};
     this.calls[call.id] = call;
     call.offer();
