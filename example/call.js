@@ -23,34 +23,34 @@
 
       user = this.elements['username'].value;
 
-      navigator.getUserMedia({video: true, audio: true},
+      // navigator.getUserMedia({video: true, audio: true},
         //success
-        function (stream) {
-          var call = client.call(user, stream);
-          localVideo.src = URL.createObjectURL(stream);
+        // function (stream) {
+      var call = client.call(user);
+          // localVideo.src = URL.createObjectURL(stream);
 
-          // call.once('localstream', function(stream) {
-          //   localVideo.src = URL.createObjectURL(stream);
-          // });
-          call.once('remotestream', function(stream) {
-            remoteVideo.src = URL.createObjectURL(stream);
-          });
-          call.on('error', function(err) {
-            console.log(err);
-          });
-          call.on('accept', function() {
-            console.log('call accepted');
-          });
-          call.on('reject', function() {
-            console.log('call rejected');
-          });
-        },
-        //error
-        function(err) {
-          console.error(err);
-          global.alert('error');
-        }
-      );
+      call.once('localstream', function(stream) {
+        localVideo.src = URL.createObjectURL(stream);
+      });
+      call.once('remotestream', function(stream) {
+        remoteVideo.src = URL.createObjectURL(stream);
+      });
+      call.on('error', function(err) {
+        console.log(err);
+      });
+      call.on('accept', function() {
+        console.log('call accepted');
+      });
+      call.on('reject', function() {
+        console.log('call rejected');
+      });
+        // },
+        // //error
+        // function(err) {
+        //   console.error(err);
+        //   global.alert('error');
+        // }
+      // );
     });
     //LOGIN
     loginForm.addEventListener('submit', function(e) {
@@ -96,8 +96,8 @@
           //success
           // function (stream) {
             // localVideo.src = URL.createObjectURL(stream);
-            // call.localstream = stream;
-            call.accept();
+            // call.accept(stream);
+        call.accept();
           // },
           //error
         //   function(err) {

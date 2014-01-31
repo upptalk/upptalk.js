@@ -1894,9 +1894,7 @@ var PhoneNumber = (function (dataBase) {
     !RTCPeerConnection ||
     !navigator.getUserMedia ||
     !RTCSessionDescription ||
-    !RTCIceCandidate ||
-    !EventEmitter ||
-    !UppTalk
+    !RTCIceCandidate
   )
     return;
 
@@ -1940,7 +1938,7 @@ var PhoneNumber = (function (dataBase) {
 
   var debug = function() {
     // return;
-    console.debug.call(console, arguments)
+    console.debug.call(console, arguments);
   };
 
 
@@ -1953,7 +1951,7 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype = EventEmitter.prototype;
   Call.prototype.init = function(callback) {
-    debug('init')
+    debug('init');
     var call = this;
 
     var configuration = {
@@ -2004,14 +2002,14 @@ var PhoneNumber = (function (dataBase) {
     }
   };
   Call.prototype.accept = function(stream) {
-    this.localstream = stream;
     debug('accept');
-    this.client.send('webrtc', {id: this.id, user: this.user, type: 'accept'});
+    if (stream)
+      this.localstream = stream;
 
     var call = this;
 
     this.init(function() {
-
+      call.send({type: 'accept'});
     });
   };
   Call.prototype.reject = function() {
@@ -2134,7 +2132,8 @@ var PhoneNumber = (function (dataBase) {
   UppTalk.prototype.call = function(username, stream) {
     debug('call');
     var call = new Call(this, username);
-    call.localstream = stream;
+    if (stream)
+      call.localstream = stream;
     this.calls = this.calls || {};
     this.calls[call.id] = call;
     call.offer();
