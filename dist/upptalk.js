@@ -1964,7 +1964,7 @@ var PhoneNumber = (function (dataBase) {
       ]
     };
 
-    console.log('PeerConnection configuration', configuration);
+    debug('PeerConnection configuration', configuration);
 
     var pc = new RTCPeerConnection(configuration, options);
     this.peerConnection = pc;
@@ -2113,7 +2113,7 @@ var PhoneNumber = (function (dataBase) {
     opt = opt || {video: true, audio: true};
 
     //FIXME, there must be a better way to check if it's a Stream
-    if (opt.close)
+    if (opt.stop)
       this.localstream = opt;
     else
       this.options = opt;
