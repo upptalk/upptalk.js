@@ -40,6 +40,13 @@ client.send('contacts', patch, function(err) {
   console.log('contact removed');
 });
 ```
+##### Events
+If contacts has been aletered on a device, other conntected devices will receive a notification with the payload.
+```javascript
+client.on('contacts', function(payload) {
+  console.log(payload);
+});
+```
 ### Sync
 You can send a list of ids of different services and get associated upptalk username.
 ```javascript

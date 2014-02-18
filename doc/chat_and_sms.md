@@ -52,9 +52,9 @@ var message = {
 
 //UppTalk user:
 message.user = 'username';
-//UppTalk group:
+//or UppTalk group:
 message.group = 'group id';
-//non UppTalk number recipient
+//or non UppTalk number recipient
 message.number = 'phone number';
 
 //
