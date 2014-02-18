@@ -199,15 +199,15 @@
       client.send('presence');
       done();
     });
-    test('energy', function(done) {
-      client.send('energy', function(err, energy) {
+    test('credit', function(done) {
+      client.send('credit', function(err, credit) {
         assert(err === undefined);
-        assert(energy);
+        assert(credit);
         done();
       });
     });
     test('remaining', function(done) {
-      client.send('remaining', function(err, remaining) {
+      client.send('remaining', '+33651090039', function(err, remaining) {
         assert(err === undefined);
         assert(isObject(remaining));
         assert(typeof remaining.voice === 'number');
@@ -281,23 +281,23 @@
     test('chat message to itself', function(done) {
       //https://yuilop.atlassian.net/browse/CORE-1726
       // var c = 0;
-      client.once('receipt', function(payload) {
+      // client.once('receipt', function(payload) {
+      //   if (payload.id !== 'test42')
+      //     return;
+
+      //   // if (++c === 2)
+      //   done();
+      // });
+      //message from itself disabled
+      client.once('chat', function(payload) {
         if (payload.id !== 'test42')
           return;
+
+        assert(payload.text === 'hello');
 
         // if (++c === 2)
         done();
       });
-      //message from itself disabled
-      // client.once('chat', function(payload) {
-      //   if (payload.id !== 'test42')
-      //     return;
-
-      //   assert(payload.text === 'hello');
-
-      //   if (++c === 2)
-      //     done();
-      // });
       client.send('chat', {user: config.username, id: 'test42', text: 'hello'});
     });
     test('chat message to other', function(done) {
@@ -308,7 +308,7 @@
         // if (++c === 2)
         done();
       });
-      client.send('chat', {user: 'sonnyp10', id: 'test43', text: 'hello'});
+      client.send('chat', {user: 'sonny', id: 'test43', text: 'hello'});
     });
     test('chat message to number', function(done) {
       var c = 0;
@@ -324,7 +324,7 @@
         if (++c === 2)
           done();
       });
-      client.once('energy', function(payload) {
+      client.once('credit', function(payload) {
         assert(typeof payload === 'string');
         if (++c === 2)
           done();
