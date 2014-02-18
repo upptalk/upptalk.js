@@ -135,14 +135,14 @@
         done();
       });
     });
-    test('send xmpp stanza', function(done) {
-      var stanza = '<iq id="foo" type="get"><ping xmlns="urn:xmpp:ping"/></iq>';
-      client.on('xmpp:out', function(p) {
-        if (p === stanza)
-          done();
-      });
-      client.send('xmpp', stanza);
-    });
+    // test('send xmpp stanza', function(done) {
+    //   var stanza = '<iq id="foo" type="get"><ping xmlns="urn:xmpp:ping"/></iq>';
+    //   client.on('xmpp:out', function(p) {
+    //     if (p === stanza)
+    //       done();
+    //   });
+    //   client.send('xmpp', stanza);
+    // });
     test('disable xmpp forwarding', function(done) {
       client.send('options', {xmpp: false}, function(err, res) {
         assert(err === undefined);
@@ -199,10 +199,10 @@
       client.send('presence');
       done();
     });
-    test('energy', function(done) {
-      client.send('energy', function(err, energy) {
+    test('credit', function(done) {
+      client.send('credit', function(err, credit) {
         assert(err === undefined);
-        assert(energy);
+        assert(credit);
         done();
       });
     });
@@ -324,7 +324,7 @@
         if (++c === 2)
           done();
       });
-      client.once('energy', function(payload) {
+      client.once('credit', function(payload) {
         assert(typeof payload === 'string');
         if (++c === 2)
           done();
