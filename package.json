@@ -1,7 +1,7 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "author": "Sonny Piers <sonny@yuilop.com>",
   "main": "lib/index.js",
   "bin": {

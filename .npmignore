@@ -1,6 +1,7 @@
 console
+dist
+doc
 example
-PhoneNumber.js
 test
 .gitignore
 .jshintignore
@@ -9,5 +10,3 @@ test
 .travis.yml
 bower.json
 Gruntfile.js
-upptalk.js
-upptalk.min.js
