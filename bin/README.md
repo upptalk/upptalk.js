@@ -1,26 +1,27 @@
 # UppTalk.js command line tool
 
-## Description
-Work in progress.
-
 UppTalk command line tool client
 
-## Usage
+## Documentation
 ```shell
-./bin/upptalk (username:password) method (key=value key=value)
+upptalk --help
 ```
 
 ## Examples
 
-#### No authentication, no payload
+### Ping
 ```shell
-./bin/upptalk captcha
+upptalk  --apikey=APIKEY ping
 ```
-#### Authentication, no payload
+### Get groups
 ```shell
-./bin upptalk username:password profile
+upptalk --auth=USERNAME:PASSWORD --apikey=APIKEY groups
 ```
-#### Authentication, payload
+### Get user profile
 ```shell
-./bin upptalk username:password profile fullname='John Doe' nickname='John' email="john@doe.com"
+upptalk --auth=USERNAME:PASSWORD --apikey=APIKEY profile USER
+```
+### Send chat message
+```shell
+upptalk --auth=USERNAME:PASSWORD --apikey=APIKEY chat '{"user": "USER", "text": "hello"}'
 ```

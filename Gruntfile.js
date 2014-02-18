@@ -2,7 +2,9 @@
 
 module.exports = function(grunt) {
   grunt.initConfig({
+
     pkg: grunt.file.readJSON('package.json'),
+
     concat: {
       dist: {
         src: [
@@ -23,6 +25,7 @@ module.exports = function(grunt) {
         dest: 'dist/upptalk.js'
       }
     },
+
     uglify: {
       my_target: {
         files: {
@@ -30,25 +33,25 @@ module.exports = function(grunt) {
         }
       }
     },
+
     jsvalidate: {
       options:{
         globals: {},
         esprimaOptions: {},
         verbose: true
       },
-      all:{
-        files:{
-          src:[
-            '*.js',
-            'dist/**/*.js',
-            // 'bin/upptalk', FIXME shebang scares esprima
-            'lib/**/*.js',
-            'test/**/*.js',
-            'example/**/*.js',
-          ]
-        }
+      files:{
+        src:[
+          '*.js',
+          'dist/**/*.js',
+          // 'bin/upptalk', FIXME shebang scares esprima
+          'lib/**/*.js',
+          'test/**/*.js',
+          'example/**/*.js',
+        ]
       }
     },
+
     jshint: {
       files:[
         '*.json',
@@ -62,18 +65,18 @@ module.exports = function(grunt) {
         jshintrc: '.jshintrc'
       }
     },
+
     mochaTest: {
-      test: {
-        options: {
-          reporter: 'spec',
-          ui: 'tdd',
-          bail: true,
-          timeout: 20000,
-          'check-leaks': true
-        },
-        src: ['test/**/*.js']
-      }
+      options: {
+        reporter: 'spec',
+        ui: 'tdd',
+        bail: true,
+        timeout: 20000,
+        'check-leaks': true
+      },
+      src: ['test/**/*.js']
     },
+
     watch: {
       scripts: {
         files: "<%= concat.dist.src %>",
@@ -83,6 +86,7 @@ module.exports = function(grunt) {
         },
       },
     },
+
     githooks: {
       all: {
         'pre-commit': 'syntax'

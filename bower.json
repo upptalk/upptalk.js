@@ -1,26 +1,26 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "homepage": "https://github.com/upptalk/upptalk.js",
   "authors": [
-    "Sonny Piers <sonny@yuilop.com>"
+    "Sonny Piers <sonny@upptalk.com>"
   ],
   "main": "dist/upptalk.min.js",
   "ignore": [
     "bin",
     "console",
+    "doc",
     "example",
     "lib",
-    "PhoneNumber.js",
+    "node_modules",
     "test",
     ".gitignore",
     ".jshintignore",
     ".jshintrc",
     ".npmignore",
     ".travis.yml",
-    "bower.json",
-    "package.json",
-    "Gruntfile.js"
+    "Gruntfile.js",
+    "package.json"
   ]
 }

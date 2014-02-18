@@ -3,60 +3,86 @@
 'use strict';
 
 var UppTalk = require('..');
-var debug = false;
-var DEBUG = function(msg) {
-  if (debug)
-    console.log(msg);
-};
 
-if (process.argv.length < 3) {
-  console.log('Usage: upptalk (-v) (--apikey=YOURAPIKEY) (username:password) method (payload)');
-  process.exit(1);
-}
+var DEBUG = function() {
+  if (opts.verbose)
+    console.log.apply(console, arguments);
+};
+var nomnom = require('nomnom');
+
+var opts = nomnom
+  .option('verbose', {
+    abbr: 'v',
+    flag: true,
+    help: 'Print debugging info'
+  })
+  .option('apikey', {
+    abbr: 'k',
+    required: true,
+    help: 'Set your api key'
+  })
+  .option('auth', {
+    abbr: 'a',
+    help: 'Set your credentials, <username>:<password>'
+  })
+  .option('host', {
+    abbr: 'h',
+    help: 'Specifiy host'
+  })
+  .option('port', {
+    abbr: 'p',
+    help: 'Specify port',
+  })
+  .option('secure', {
+    abbr: 's',
+    help: 'Specify either to use TLS, true or false'
+  })
+  .option('version', {
+    flag: true,
+    abbr: 'V',
+    help: 'print version and exit',
+    callback: function() {
+      return '0.6.4';
+    }
+  })
+  .option('method', {
+    position: '0',
+    help: 'Method to send',
+    required: true
+  })
+  .option('payload', {
+    position: '1',
+    help: 'Payload to send, escape object with quotes ex: \'{"foo": "bar"}\' or \'["foo", "bar"]\''
+  })
+  .parse();
 
 var username;
 var password;
-var method;
+if (opts.auth) {
+  username = opts.auth.split(':')[0];
+  password = opts.auth.split(':')[1];
+}
+var method = opts.method;
 var payload;
-var apikey;
-for (var i = 2; i < process.argv.length; i++) {
-  var arg = process.argv[i];
-  //verbose
-  if (arg === '-v') {
-    debug = true;
-    continue;
-  }
-  //apikey
-  if (arg.indexOf('--apikey=') === 0) {
-    apikey = arg.split('--apikey=')[1];
-    continue;
-  }
-  //credentials
-  if (!username && arg.indexOf(':') > -1) {
-    var creds = arg.split(':');
-    username = creds[0];
-    password = creds[1];
-    continue;
-  }
-  //method
-  if (arg.indexOf('=') === -1) {
-    method = arg;
-    continue;
-  }
-
-  if (!payload)
-    payload = {};
-
-  //fields
-  var keyvalue = arg.split('=');
-  payload[keyvalue[0]] = keyvalue[1];
+try {
+  payload = JSON.parse(opts.payload);
+}
+catch (e) {
+  payload = opts.payload;
 }
 
-var client;
-if (apikey)
-  client = new UppTalk({apikey: apikey});
-else
-  client = new UppTalk();
+var options = {};
+if (opts.host)
+  options.host = opts.host;
+if (opts.port)
+  options.port = opts.port;
+if (opts.apikey)
+  options.apikey = opts.apikey;
+if ('secure' in opts)
+  options.secure = opts.secure;
+
+var client = new UppTalk(options);
+client.keepalive = false;
 
 DEBUG('OPENING');
 client.open(function() {
@@ -65,10 +91,12 @@ client.open(function() {
     DEBUG('AUTHENTICATING');
     this.send('authenticate', {username: username, password: password}, function(err) {
       if (err) {
-        console.log('Authentication failed');
+        console.error('Authentication failed');
         process.exit(1);
       }
-      DEBUG('AUTHENTICATED');
+      process.nextTick(function() {
+        DEBUG('AUTHENTICATED');
+      });
       call(method, payload);
     });
   }
@@ -77,30 +105,41 @@ client.open(function() {
   }
 });
 client.once('close', function() {
-  DEBUG('CLOSE');
+  DEBUG('CLOSED');
   process.exit(1);
 });
-
+client.on('send', function(m) {
+  DEBUG('SENDING:');
+  DEBUG(m);
+});
+client.on('message', function(m) {
+  DEBUG('RECEIVED:');
+  DEBUG(m);
+});
+client.on('error', function(err) {
+  throw err;
+});
 
 var done = function(err, res) {
-  DEBUG('RESPONSE');
-  if (err) {
-    console.log('ERROR:', err);
-  }
-  else {
-    console.log('SUCESS:', res);
-  }
-  DEBUG('CLOSING');
-  client.close();
+  process.nextTick(function() {
+    DEBUG('RESPONSE');
+    if (err !== undefined)
+      console.log(err);
+    else if (res !== undefined)
+      console.log(res);
+    DEBUG('CLOSING');
+    process.nextTick(function() {
+      client.close();
+    });
+  });
 };
 
 var call = function(method, payload) {
-  DEBUG('SENDING');
-  if (payload) {
+  if (payload)
     client.send(method, payload, done);
-  }
-  else {
+  else
     client.send(method, done);
-  }
-  DEBUG('SENT');
+  process.nextTick(function() {
+    DEBUG('SENT');
+  });
 };

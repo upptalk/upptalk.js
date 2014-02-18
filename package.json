@@ -1,7 +1,7 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "author": "Sonny Piers <sonny@yuilop.com>",
   "main": "lib/index.js",
   "bin": {
@@ -20,7 +20,8 @@
     "test": "./node_modules/.bin/grunt syntax"
   },
   "dependencies": {
-    "conducto-client": "~0.0.2"
+    "conducto-client": "~0.0.2",
+    "nomnom": "~1.6.2"
   },
   "devDependencies": {
     "wolfy87-eventemitter": "~4.2.6",
