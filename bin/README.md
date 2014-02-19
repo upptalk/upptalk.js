@@ -2,7 +2,13 @@
 
 UppTalk command line tool client
 
-## Documentation
+## Install
+You need Node.js installed.
+```shell
+npm install -g upptalk
+```
+
+## Usage
 ```shell
 upptalk --help
 ```
