@@ -29,6 +29,9 @@ module.exports = function(grunt) {
       my_target: {
         files: {
           'dist/upptalk.min.js': ['dist/upptalk.js']
+        },
+        options: {
+          sourceMap: true
         }
       }
     },
@@ -43,7 +46,7 @@ module.exports = function(grunt) {
         src:[
           '*.js',
           'dist/**/*.js',
-          // 'bin/upptalk', FIXME shebang scares esprima
+          // 'bin/upptalk', //FIXME shebang scares esprima
           'lib/**/*.js',
           'test/**/*.js',
           'example/**/*.js',
