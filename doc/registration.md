@@ -30,7 +30,8 @@ var payload = {
   password: '', //desired password
   email:    '', //email address
   captcha:  '', //the captcha id choice
-  lang:     '', //ISO lang code e.g. es
+  lang:     '', //ISO ISO 639-1 lang code e.g. en
+                //see: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
   token:    '', //the captcha token
 };
 client.send('register', payload, function(err) {
