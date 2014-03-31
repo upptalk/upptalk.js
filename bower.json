@@ -7,6 +7,9 @@
     "Sonny Piers <sonny@upptalk.com>"
   ],
   "main": "dist/upptalk.min.js",
+  "dependencies": {
+    "es6-promise": "~0.1.1"
+  },
   "ignore": [
     "bin",
     "console",
