@@ -511,6 +511,32 @@
   var XMLHttpRequest = global.XMLHttpRequest;
   var dummy = function() {};
 
+  var jsonp = function(opts, fn) {
+    var cb = opts.query[opts.jsonp];
+    var url = formatURL(opts);
+
+    var el = document.createElement('script');
+    el.src = url;
+    el.async = true;
+
+    global[cb] = function(b) {
+      fn(null, b);
+      delete global[cb];
+      delete el.onerror;
+      el.parentNode.remove(el);
+    };
+
+    el.onerror = function(e) {
+      fn(e);
+      delete el.onerror;
+      delete global[cb];
+      el.parentNode.remove(el);
+    };
+
+    var head = document.head || document.getElementsByTagName('head')[0];
+    head.appendChild(el);
+  };
+
   var HTTPRequest = function(options) {
     var events = ['response', 'error', 'end'];
     for (var i = 0; i < events.length; i++)
@@ -520,6 +546,17 @@
 
     for (var j in opts)
       this[j] = opts[j];
+
+    //jsonp
+    if (typeof opts.jsonp === 'string') {
+      jsonp(opts, (function(err, body) {
+        if (err)
+          this.onerror(err);
+        else
+          this.onend(body);
+      }).bind(this));
+      return;
+    }
 
     var req = new XMLHttpRequest();
 
@@ -616,6 +653,7 @@
       res = response;
     };
     req.onend = function(body) {
+      res = res || {};
       res.body = body;
       callback(null, res);
     };
@@ -652,6 +690,13 @@
 
   var prototypeOfObject = getPrototypeOf({});
 
+  var isObject = function(obj) {
+    if (typeof obj !== 'object')
+      return false;
+
+    return getPrototypeOf(obj) === prototypeOfObject || getPrototypeOf(obj) === null;
+  };
+
   var handleOptions = function(opts) {
 
     var options = {};
@@ -664,7 +709,15 @@
     options.headers = typeof opts.headers === 'object' ? opts.headers : {};
     options.method = typeof opts.method === 'string' ? opts.method.toUpperCase() : 'GET';
 
-    //to lower cases headers
+    //jsonp
+    if (opts.jsonp === true)
+      opts.jsonp = 'callback';
+    if (typeof opts.jsonp === 'string') {
+      options.jsonp = opts.jsonp;
+      options.query[opts.jsonp] = 'HTTPClient' + Date.now();
+    }
+
+    //lower cases headers
     for (var i in options.headers) {
       var v = options.headers[i];
       delete options.headers[i];
@@ -678,11 +731,12 @@
     }
 
     //json
-    if (Array.isArray(opts.body) || (typeof opts.body == 'object' && getPrototypeOf(opts.body) === prototypeOfObject)) {
+    if (Array.isArray(opts.body) || isObject(opts.body)) {
       options.body = JSON.stringify(opts.body);
       if (!options.headers['tontent-type'])
         options.headers['content-type'] = 'application/json; charset=utf-8';
     }
+
     //string
     else if (typeof opts.body === 'string') {
       options.body = opts.body;
@@ -728,7 +782,8 @@
     module.exports = {
       parse: utils.parse,
       serialize: utils.serialize,
-      Connection: Connection
+      Connection: Connection,
+      utils: utils
     };
   }
   else
@@ -752,6 +807,7 @@
     }
     return returnValue;
   };
+
   var serialize = function(data) {
     if (typeof data !== 'object' || data === null)
       return new TypeError('Not an object');
@@ -765,35 +821,10 @@
     return data;
   };
 
-  var utils = {parse: parse, serialize: serialize};
-
-  if (typeof module !== 'undefined' && module.exports)
-    module.exports = utils;
-  else {
-    global.conducto.parse = parse;
-    global.conducto.serialize = serialize;
-  }
-
-})(this);
-(function(global) {
-
-  'use strict';
-
-  var EventEmitter;
-  var utils;
   var inherits;
-
-  if (typeof module !== 'undefined' && module.exports) {
-    utils = require('./utils');
-    EventEmitter = require('events').EventEmitter;
+  if (typeof module !== 'undefined' && module.exports)
     inherits = require('util').inherits;
-  }
   else {
-    utils = {
-      serialize: global.conducto.serialize,
-      parse: global.conducto.parse
-    };
-    EventEmitter = global.EventEmitter;
     //https://github.com/joyent/node/blob/master/lib/util.js#L558
     inherits = function(ctor, superCtor) {
       ctor.super_ = superCtor;
@@ -808,13 +839,71 @@
     };
   }
 
+  var Promise;
+  if (typeof module !== 'undefined' && module.exports) {
+    if (!Promise) {
+      try {
+        Promise = require('es6-promise').Promise;
+      }
+      catch (ex) {}
+    }
+  }
+  else {
+    Promise = global.Promise;
+  }
+
+
+  var mixin = function(dest, src) {
+    for (var i in src) {
+      if (src.hasOwnProperty(i)) {
+        dest[i] = src[i];
+      }
+    }
+    return dest;
+  };
+
+  var utils = {
+    parse: parse,
+    serialize: serialize,
+    inherits: inherits,
+    mixin: mixin,
+    Promise: Promise
+  };
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = utils;
+  else {
+    global.conducto.parse = parse;
+    global.conducto.serialize = serialize;
+    global.conducto.utils = utils;
+  }
+
+})(this);
+(function(global) {
+
+  'use strict';
+
+  var EventEmitter;
+  var utils;
+  var inherits;
+
+  if (typeof module !== 'undefined' && module.exports) {
+    utils = require('./utils');
+    EventEmitter = require('events').EventEmitter;
+  }
+  else {
+    utils = global.conducto.utils;
+    EventEmitter = global.EventEmitter;
+  }
+
   var Connection = function() {
     EventEmitter.call(this);
     this.actions = {};
+    this.ignoreEvents = [];
     this.responseHandlers = {};
     this.lastId = 0;
   };
-  inherits(Connection, EventEmitter);
+  utils.inherits(Connection, EventEmitter);
   var methods = {
     onError: function(error) {
       if (error.data)
@@ -852,9 +941,9 @@
       this.emit('message', message, data);
     },
     onMessage: function(message) {
-      if (message.method)
+      if (message.method && this.ignoreEvents.indexOf(message.method) === -1)
         this.emit(message.method, message.payload);
-      else
+      else if (!message.method)
         this.onResponse(message);
     },
     notify: function(method, payload) {
@@ -866,38 +955,39 @@
 
       this.sendNotification(notification);
     },
-    send: function() {
+    exec: function(method, payload, cb) {
+      //overrided by a custom action
+      if (this.actions[method])
+        return this.actions[method].apply(this, Array.prototype.slice.call(arguments, 1));
+
+      return this.request.apply(this, arguments);
+    },
+    send: function(method, payload, cb) {
+      //direct message sending
       if (typeof arguments[0] === 'object') {
         if (typeof arguments[1] === 'function')
           this.sendRequest(arguments[0], arguments[1]);
         else
           this.sendNotification(arguments[0]);
-
-        return;
       }
 
-      var event = arguments[0];
-
-      if (this.actions[event])
-        return this.actions[event].apply(this, Array.prototype.slice.call(arguments, 1));
-
-      var payload;
-      var callback;
-      if (typeof arguments[1] === 'function')
-        callback = arguments[1];
-      else if (typeof arguments[1] !== 'undefined') {
+      //arguments
+      if (typeof arguments[1] === 'function') {
+        cb = arguments[1];
+        payload = undefined;
+      }
+      else if (arguments[1] !== undefined) {
         payload = arguments[1];
-        if (typeof arguments[2] === 'function')
-          callback = arguments[2];
+        cb = typeof arguments[2] === 'function' ? arguments[2] : undefined;
       }
 
-      if (!callback)
-        this.notify(event, payload);
+      if (!cb)
+        this.notify(method, payload);
       else {
         if (payload !== undefined)
-          this.request(event, payload, callback);
+          this.request(method, payload, cb);
         else
-          this.request(event, callback);
+          this.request(method, cb);
       }
     },
     defineAction: function(name, callback) {
@@ -915,16 +1005,9 @@
 
       this.transport.send(serialized);
 
-      //FIXME dirty hack
-      var hack = (function() {
-        this.emit('send', message, serialized);
-      }).bind(this);
-
-      if (typeof process !== 'undefined' && process.nextTick)
-        process.nextTick(hack);
-      else
-        setTimeout(hack, 0);
+      this.emit('send', message, serialized);
     },
+    //FIXME delete this?
     // onRequest: function(request) {
     //   return;
     //   // var handler = this.getRequestHandler(request.method);
@@ -947,33 +1030,52 @@
       delete notif.id;
       this.sendMessage(notif);
     },
-    sendRequest: function(request, callback) {
+    sendRequest: function(request, cb) {
       if (request.id === undefined)
         request.id = (this.lastId++).toString();
 
-      if (callback)
-        this.addResponseHandler(request.id, callback);
+      if (!utils.Promise && !cb)
+        return this.sendMessage(request);
+
+      var resolve;
+      var reject;
+
+      this.addResponseHandler(request.id, function(err, res) {
+        if (cb)
+          cb(err, res);
+        if (err && reject)
+          reject(err);
+        else if (resolve)
+          resolve(res);
+      });
 
       this.sendMessage(request);
+
+      if (utils.Promise) {
+        return new utils.Promise(function(resolved, rejected) {
+          resolve = resolved;
+          reject = rejected;
+        });
+      }
     },
-    request: function(method, payload, callback) {
+    request: function(method, payload, cb) {
       var request = {
         method: method
       };
 
       if (typeof arguments[1] === 'function') {
-        callback = arguments[1];
+        cb = arguments[1];
         payload = undefined;
       }
       else {
-        callback = arguments[2];
+        cb = arguments[2];
         payload = arguments[1];
       }
 
       if (payload !== undefined)
         request.payload = payload;
 
-      this.sendRequest(request, callback);
+      return this.sendRequest(request, cb);
     },
     respond: function(request, error, result) {
       var response = {
@@ -990,8 +1092,8 @@
     //
     //response handler
     //
-    addResponseHandler: function(id, callback) {
-      this.responseHandlers[id] = callback.bind(this);
+    addResponseHandler: function(id, fn) {
+      this.responseHandlers[id] = fn.bind(this);
     },
     getResponseHandler: function(id) {
       return this.responseHandlers[id];
@@ -1000,9 +1102,9 @@
       delete this.responseHandlers[id];
     },
   };
-  for (var i in methods)
-    Connection.prototype[i] = methods[i];
+  utils.mixin(Connection.prototype, methods);
 
+  //FIXME
   Object.defineProperty(Connection.prototype, 'readyState', {
     get: function() {
       return this.transport ? this.transport.readyState : 3;
@@ -1019,19 +1121,22 @@
 
   'use strict';
 
-  var Connection;
   var WebSocket;
   var http;
+  var conducto;
   if (typeof module !== 'undefined' && module.exports) {
-    Connection = require('conducto-core').Connection;
+    conducto = require('conducto-core');
     WebSocket = require('ws');
     http = require('httpclient');
   }
   else {
-    Connection = global.conducto.Connection;
+    conducto = global.conducto;
     WebSocket = global.WebSocket;
     http = global.HTTPClient;
+    Promise = global.Promise;
   }
+  var Connection = conducto.Connection;
+  var utils = conducto.utils;
 
   var formatQuery = function(query) {
     var querystring = '';
@@ -1056,49 +1161,70 @@
     query: {}
   };
 
-  var Client = function(option) {
+  var Client = function(options) {
     this.transport = null;
     Connection.call(this);
     for (var i in opts)
       this[i] = opts[i];
-    this.handleOption(option);
+    this.handleOption(options);
   };
-  Client.prototype = Connection.prototype;
+  utils.inherits(Client, Connection);
 
   var methods = {
-    open: function() {
-      var option;
-      var callback;
+    open: function(options, callback) {
+      //arguments
       if (typeof arguments[0] === 'function')
         callback = arguments[0];
-      else if (typeof arguments[0] !== 'function') {
-        option = arguments[0];
+      else if (arguments[0]) {
+        this.handleOption(arguments[0]);
         if (typeof arguments[1] === 'function')
           callback = arguments[1];
       }
 
-      this.handleOption(option);
+      //callback
+      if (callback) {
+        var c = false;
+        this.once('open', function() {
+          if (c) return;
+          callback();
+          c = true;
+        });
+        this.once('error', function(err) {
+          if (c) return;
+          callback(err);
+          c = true;
+        });
+      }
 
-      if (callback)
-        this.once('open', callback);
-
+      //set up transport
       var url = (this.secure ? 'wss' : 'ws') + '://' + this.host + ':' + this.port + this.path;
       var qs = formatQuery(this.query);
       if (qs)
         url += qs;
-
       this.transport = new WebSocket(url);
-      this.transport.addEventListener('open', this.onOpen.bind(this));
-      this.transport.addEventListener('close', this.onClose.bind(this));
-      this.transport.addEventListener('error', this.onError.bind(this));
-      this.transport.addEventListener('message', this.onData.bind(this));
+      this.transport.onopen = this.onOpen.bind(this);
+      this.transport.onclose = this.onClose.bind(this);
+      this.transport.onerror = this.onError.bind(this);
+      this.transport.onmessage = this.onData.bind(this);
+      // this.transport.addEventListener('open', this.onOpen.bind(this));
+      // this.transport.addEventListener('close', this.onClose.bind(this));
+      // this.transport.addEventListener('error', this.onError.bind(this));
+      // this.transport.addEventListener('message', this.onData.bind(this));
 
+      //set up keepalive
       if (this.keepalive) {
         this.on('message', this.pingpong);
         this.once('close', function() {
           this.removeListener('message', this.pingpong);
         });
       }
+
+      //return a promise
+      if (utils.Promise)
+        return new utils.Promise((function(resolve, reject) {
+          this.once('open', resolve);
+          this.once('error', reject);
+        }).bind(this));
     },
     handleOption: function(option) {
       if (typeof option === 'string')
@@ -1116,7 +1242,6 @@
         clearTimeout(this.pingTimeout);
 
       var that = this;
-
       this.pingTimeout = setTimeout(function() {
         var pong = setTimeout(function() {
           that.close();
@@ -1142,7 +1267,6 @@
         delete options.password;
         delete opts.auth;
       }
-      delete opts.path;
       for (var i in opts)
         options[i] = opts[i];
 
@@ -1150,13 +1274,12 @@
     }
   };
 
-  for (var i in methods)
-    Client.prototype[i] = methods[i];
+  utils.mixin(Client.prototype, methods);
 
   if (typeof module !== 'undefined' && module.exports)
     module.exports = Client;
   else
-    global.conducto.Client = Client;
+    conducto.Client = Client;
 
 })(this);
 /* Automatically generated. Do not edit. */

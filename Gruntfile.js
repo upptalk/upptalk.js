@@ -9,7 +9,7 @@ module.exports = function(grunt) {
       dist: {
         src: [
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
-          'node_modules/conducto-client/node_modules/httpclient/lib/xhr.js',
+          'node_modules/conducto-client/node_modules/httpclient/lib/browser.js',
           'node_modules/conducto-client/node_modules/httpclient/index.js',
           'node_modules/conducto-client/node_modules/httpclient/lib/utils.js',
           'node_modules/conducto-client/node_modules/conducto-core/index.js',
@@ -106,7 +106,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
-  grunt.registerTask('test', ['jsvalidate', 'jshint',  'mocha']);
+  grunt.registerTask('test', ['jsvalidate', 'mocha', 'jshint']);
   grunt.registerTask('default', 'test');
 
   grunt.registerTask('build', ['concat', 'uglify']);
