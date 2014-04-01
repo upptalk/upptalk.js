@@ -9,7 +9,7 @@ module.exports = function(grunt) {
       dist: {
         src: [
           'node_modules/wolfy87-eventemitter/EventEmitter.js',
-          'node_modules/conducto-client/node_modules/httpclient/lib/xhr.js',
+          'node_modules/conducto-client/node_modules/httpclient/lib/browser.js',
           'node_modules/conducto-client/node_modules/httpclient/index.js',
           'node_modules/conducto-client/node_modules/httpclient/lib/utils.js',
           'node_modules/conducto-client/node_modules/conducto-core/index.js',
@@ -30,6 +30,9 @@ module.exports = function(grunt) {
       my_target: {
         files: {
           'dist/upptalk.min.js': ['dist/upptalk.js']
+        },
+        options: {
+          sourceMap: true
         }
       }
     },
@@ -44,7 +47,7 @@ module.exports = function(grunt) {
         src:[
           '*.js',
           'dist/**/*.js',
-          // 'bin/upptalk', FIXME shebang scares esprima
+          // 'bin/upptalk', //FIXME shebang scares esprima
           'lib/**/*.js',
           'test/**/*.js',
           'example/**/*.js',
@@ -104,7 +107,7 @@ module.exports = function(grunt) {
 
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
-  grunt.registerTask('test', ['jsvalidate', 'jshint',  'mocha']);
+  grunt.registerTask('test', ['jsvalidate', 'mocha', 'jshint']);
   grunt.registerTask('default', 'test');
 
   grunt.registerTask('build', ['concat', 'uglify']);

@@ -1,6 +1,5 @@
-# UppTalk.js command line tool
-
-UppTalk command line tool client
+UppTalk command line client
+==============================
 
 ## Install
 You need Node.js installed.
@@ -17,7 +16,7 @@ upptalk --help
 
 ### Ping
 ```shell
-upptalk  --apikey=APIKEY ping
+upptalk --apikey=APIKEY ping
 ```
 ### Get groups
 ```shell

@@ -52,13 +52,13 @@ You can send a list of ids of different services and get associated upptalk user
 ```javascript
 //valid types are 'username', 'phone', 'fb', 'email', 'twitter', 'gplus', 'linkedin'
 //username is type for upptalk usernames
-//each type can by an id or an array of ids
+//each type can be an id or an array of ids
 var sync = {
   phone: ['+33651090039'],
   username: ['janedoe'],
   twitter: 'cuicui'
 };
-client.on('sync', sync, function(err, synced) {
+client.send('sync', sync, function(err, synced) {
   if (err)
     return console.log(err);
 

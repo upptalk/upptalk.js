@@ -1,12 +1,15 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "homepage": "https://github.com/upptalk/upptalk.js",
   "authors": [
     "Sonny Piers <sonny@upptalk.com>"
   ],
   "main": "dist/upptalk.min.js",
+  "dependencies": {
+    "es6-promise": "~0.1.1"
+  },
   "ignore": [
     "bin",
     "console",
