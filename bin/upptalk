@@ -40,8 +40,8 @@ var opts = nomnom
   .option('version', {
     flag: true,
     help: 'print version and exit',
+    abbr: 'V',
     callback: function() {
-    // abbr: 'V', broken
       return '0.6.4';
     }
   })
@@ -90,29 +90,27 @@ var p = client.open();
 if (username && password) {
   p = p.then(function() {
     DEBUG('AUTHENTICATING');
-    var a = client.exec('authenticate', {username: username, password: password});
-    a.then(function() {
+    return client.exec('authenticate', {username: username, password: password})
+    .then(function() {
       DEBUG('AUTHENTICATED');
     });
-    return a;
   });
 }
 p.then(function() {
   return client.exec(method, payload);
 })
 .then(function(res) {
-  onresponse(undefined, res);
+  if (res)
+    console.log(res);
+  onresponse();
 })
 .catch(function(err) {
-  onresponse(err);
-});
-
-var onresponse = function(err, res) {
   if (err)
     console.error(err);
-  else if (res)
-    console.log(res);
+  onresponse();
+});
 
+var onresponse = function() {
   DEBUG('CLOSING');
   client.close();
 };
