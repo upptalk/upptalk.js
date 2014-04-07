@@ -17,32 +17,32 @@ var opts = nomnom
     help: 'Print debugging info'
   })
   .option('apikey', {
-    abbr: 'k',
+    // abbr: 'k', broken
     required: true,
     help: 'Set your api key'
   })
   .option('auth', {
-    abbr: 'a',
+    // abbr: 'a', broken
     help: 'Set your credentials, <username>:<password>'
   })
   .option('host', {
-    abbr: 'h',
+    // abbr: 'h', broken
     help: 'Specifiy host'
   })
   .option('port', {
-    abbr: 'p',
+    // abbr: 'p', broken
     help: 'Specify port',
   })
   .option('secure', {
-    abbr: 's',
+    // abbr: 's', broken
     help: 'Specify either to use TLS, true or false'
   })
   .option('version', {
     flag: true,
-    abbr: 'V',
     help: 'print version and exit',
+    abbr: 'V',
     callback: function() {
-      return '0.6.4';
+      return '0.6.5';
     }
   })
   .option('method', {
@@ -85,24 +85,38 @@ var client = new UppTalk(options);
 client.keepalive = false;
 
 DEBUG('OPENING');
-client.open(function() {
-  DEBUG('OPEN');
-  if (username && password) {
+
+var p = client.open();
+if (username && password) {
+  p = p.then(function() {
     DEBUG('AUTHENTICATING');
-    this.send('authenticate', {username: username, password: password}, function(err) {
-      if (err) {
-        console.error('Authentication failed');
-        process.exit(1);
-      }
-      process.nextTick(function() {
-        DEBUG('AUTHENTICATED');
-      });
-      call(method, payload);
+    return client.exec('authenticate', {username: username, password: password})
+    .then(function() {
+      DEBUG('AUTHENTICATED');
     });
-  }
-  else {
-    call(method, payload);
-  }
+  });
+}
+p.then(function() {
+  return client.exec(method, payload);
+})
+.then(function(res) {
+  if (res)
+    console.log(res);
+  onresponse();
+})
+.catch(function(err) {
+  if (err)
+    console.error(err);
+  onresponse();
+});
+
+var onresponse = function() {
+  DEBUG('CLOSING');
+  client.close();
+};
+
+client.once('open', function() {
+  DEBUG('OPEN');
 });
 client.once('close', function() {
   DEBUG('CLOSED');
@@ -119,27 +133,3 @@ client.on('message', function(m) {
 client.on('error', function(err) {
   throw err;
 });
-
-var done = function(err, res) {
-  process.nextTick(function() {
-    DEBUG('RESPONSE');
-    if (err !== undefined)
-      console.log(err);
-    else if (res !== undefined)
-      console.log(res);
-    DEBUG('CLOSING');
-    process.nextTick(function() {
-      client.close();
-    });
-  });
-};
-
-var call = function(method, payload) {
-  if (payload)
-    client.send(method, payload, done);
-  else
-    client.send(method, done);
-  process.nextTick(function() {
-    DEBUG('SENT');
-  });
-};

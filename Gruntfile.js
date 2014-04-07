@@ -90,11 +90,6 @@ module.exports = function(grunt) {
       },
     },
 
-    githooks: {
-      all: {
-        'pre-commit': 'syntax'
-      }
-    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -103,7 +98,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-githooks');
 
   grunt.registerTask('mocha', ['mochaTest']);
   grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
