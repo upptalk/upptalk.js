@@ -105,7 +105,7 @@ if (username && password) {
   });
 }
 p.then(function() {
-  DEBUG('SENDING REQUEST')
+  DEBUG('SENDING REQUEST');
   timeAtSending = Date.now();
   return client.exec(method, payload);
 })

@@ -36,24 +36,6 @@ module.exports = function(grunt) {
       }
     },
 
-    jsvalidate: {
-      options:{
-        globals: {},
-        esprimaOptions: {},
-        verbose: true
-      },
-      files:{
-        src:[
-          '*.js',
-          'dist/**/*.js',
-          // 'bin/upptalk', //FIXME shebang scares esprima
-          'lib/**/*.js',
-          'test/**/*.js',
-          'example/**/*.js',
-        ]
-      }
-    },
-
     jshint: {
       files:[
         '*.json',
@@ -93,14 +75,13 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-jsvalidate');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-mocha-test');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   grunt.registerTask('mocha', ['mochaTest']);
-  grunt.registerTask('syntax', ['jsvalidate', 'jshint']);
-  grunt.registerTask('test', ['jsvalidate', 'mocha', 'jshint']);
+  grunt.registerTask('syntax', ['jshint']);
+  grunt.registerTask('test', ['mocha', 'jshint']);
   grunt.registerTask('default', 'test');
 
   grunt.registerTask('build', ['concat', 'uglify']);
