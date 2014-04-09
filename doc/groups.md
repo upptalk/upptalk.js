@@ -48,11 +48,12 @@ client.send('group:leave', 'group', function(err) {
 });
 ```
 ##### Listen group
-A group event is received when the user join a group
+A group event is received when the user has been invited to a group
 ```javascript
 client.on('group', function(group) {
   console.log(group);
   //group.id is the group id
+  //group.name is the group name
 });
 ```
 ##### Get groups
@@ -63,8 +64,9 @@ client.send('groups', function(err, groups) {
 
   //groups is an array of group objects
   for (var i = 0; i < groups.length; i++) {
-    console.log('group id :' groups[i].id);
-    console.log('group name :' groups[i].name);
+    console.log('group id:', groups[i].id);
+    console.log('group name:', groups[i].name);
+    console.log('group path:', groups[i].path);
   }
 });
 ```

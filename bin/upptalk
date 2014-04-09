@@ -37,6 +37,9 @@ var opts = nomnom
     // abbr: 's', broken
     help: 'Specify either to use TLS, true or false'
   })
+  .option('close', {
+    help: 'Close connection and return when request completed, true (default) or false'
+  })
   .option('version', {
     flag: true,
     help: 'print version and exit',
@@ -80,39 +83,51 @@ if (opts.apikey)
   options.apikey = opts.apikey;
 if ('secure' in opts)
   options.secure = opts.secure;
+if (opts.close !== false)
+  opts.close = true;
 
 var client = new UppTalk(options);
 client.keepalive = false;
 
 DEBUG('OPENING');
 
+var timeAtSending;
+
 var p = client.open();
 if (username && password) {
   p = p.then(function() {
     DEBUG('AUTHENTICATING');
+    var now = Date.now();
     return client.exec('authenticate', {username: username, password: password})
     .then(function() {
-      DEBUG('AUTHENTICATED');
+      DEBUG('AUTHENTICATED', Date.now() - now + 'ms');
     });
   });
 }
 p.then(function() {
+  DEBUG('SENDING REQUEST')
+  timeAtSending = Date.now();
   return client.exec(method, payload);
 })
 .then(function(res) {
-  if (res)
-    console.log(res);
-  onresponse();
+  done(undefined, res);
 })
 .catch(function(err) {
-  if (err)
-    console.error(err);
-  onresponse();
+  done(err);
 });
 
-var onresponse = function() {
-  DEBUG('CLOSING');
-  client.close();
+var done = function(err, res) {
+  if (err)
+    console.error(err);
+  else if (res)
+    console.log(res);
+
+  DEBUG('RECEIVED RESPONSE', Date.now() - timeAtSending + 'ms');
+
+  if (opts.close !== false) {
+    DEBUG('CLOSING');
+    client.close();
+  }
 };
 
 client.once('open', function() {
@@ -123,12 +138,10 @@ client.once('close', function() {
   process.exit(1);
 });
 client.on('send', function(m) {
-  DEBUG('SENDING:');
-  DEBUG(m);
+  DEBUG('SENDING:', JSON.stringify(m));
 });
 client.on('message', function(m) {
-  DEBUG('RECEIVED:');
-  DEBUG(m);
+  DEBUG('RECEIVED:', JSON.stringify(m));
 });
 client.on('error', function(err) {
   throw err;
