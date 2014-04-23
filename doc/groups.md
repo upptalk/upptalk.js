@@ -14,7 +14,7 @@ You can change path or name or both.
 Only the group creator can edit a group.
 ```javascript
 
-client.send('group', {group: 'id', name: 'new name', path: 'new-path'}, function(err) {
+client.send('group', {id: 'id', name: 'new name', path: 'new-path'}, function(err) {
   if (err)
     return console.log(err);
 
