@@ -1,6 +1,7 @@
 ##### Create group
+path is optional
 ```javascript
-client.send('group', function(err, id) {
+client.send('group', {name: 'foo bar', path: 'foo-bar'}, function(err, id) {
   if (err)
     return console.log(err);
 
@@ -8,13 +9,16 @@ client.send('group', function(err, id) {
   //id is the id of the newly created group
 });
 ```
-##### Name/rename group
+##### Edit group
+You can change path or name or both.
+Only the group creator can edit a group.
 ```javascript
-client.send('group:name', {group: 'id', name: 'name'}, function(err) {
+
+client.send('group', {group: 'id', name: 'new name', path: 'new-path'}, function(err) {
   if (err)
     return console.log(err);
 
-  console.log('group was renamed');
+  console.log('group was edited');
 });
 ```
 ##### Invite user to join group
@@ -48,12 +52,13 @@ client.send('group:leave', 'group', function(err) {
 });
 ```
 ##### Listen group
-A group event is received when the user has been invited to a group
+A group event is received when the user has been invited to a group as well as when a group name and/or path has be changed
 ```javascript
 client.on('group', function(group) {
   console.log(group);
   //group.id is the group id
   //group.name is the group name
+  //group.path is the group path
 });
 ```
 ##### Get groups
