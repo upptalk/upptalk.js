@@ -1,6 +1,6 @@
 ##### Get credit left
 ```javascript
-client.send('credit', function(err, credit) {
+client.exec('credit', function(err, credit) {
   if (err)
     return console.log(err);
 
@@ -20,7 +20,7 @@ client.on('credit', function(credit) {
 ##### Get remaining SMS/minutes
 ```javascript
 //if number is omited, user number is assumed
-client.send('remaining', [number,] function(err, remaining) {
+client.exec('remaining', [number,] function(err, remaining) {
   if (err)
     return console.log(err);
 

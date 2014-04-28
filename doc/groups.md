@@ -1,7 +1,7 @@
 ##### Create group
-path is optional
+path is optional and unique, 2 groups can't have the same path
 ```javascript
-client.send('group', {name: 'foo bar', path: 'foo-bar'}, function(err, id) {
+client.exec('group', {name: 'foo bar', path: 'foo-bar'}, function(err, id) {
   if (err)
     return console.log(err);
 
@@ -9,12 +9,23 @@ client.send('group', {name: 'foo bar', path: 'foo-bar'}, function(err, id) {
   //id is the id of the newly created group
 });
 ```
+
+You can check if a path is available using
+```javascript
+client.exec('group:available', path, function(err, available) {
+  if (err)
+    return console.log(err);
+
+  console.log(available);
+  //true or false
+});
+```
 ##### Edit group
 You can change path or name or both.
 Only the group creator can edit a group.
 ```javascript
 
-client.send('group', {id: 'id', name: 'new name', path: 'new-path'}, function(err) {
+client.exec('group', {id: 'id', name: 'new name', path: 'new-path'}, function(err) {
   if (err)
     return console.log(err);
 
@@ -25,7 +36,7 @@ client.send('group', {id: 'id', name: 'new name', path: 'new-path'}, function(er
 Only a group owner (creator) can send an invitation.
 ```javascript
 var invitation = {group: 'id', user: 'username'};
-client.send('group:invite', invitation, function(err) {
+client.exec('group:invite', invitation, function(err) {
   if (err)
     return console.log(err);
 
@@ -35,7 +46,7 @@ client.send('group:invite', invitation, function(err) {
 ##### Kick user from group
 ```javascript
 var kick = {group: 'id', user: 'username'};
-client.send('group:kick', kick, function(err) {
+client.exec('group:kick', kick, function(err) {
   if (err)
     return console.log(err);
 
@@ -44,7 +55,7 @@ client.send('group:kick', kick, function(err) {
 ```
 ##### Leave group
 ```javascript
-client.send('group:leave', 'group', function(err) {
+client.exec('group:leave', 'group', function(err) {
   if (err)
     return console.log(err);
 
@@ -63,7 +74,7 @@ client.on('group', function(group) {
 ```
 ##### Get groups
 ```javascript
-client.send('groups', function(err, groups) {
+client.exec('groups', function(err, groups) {
   if (err)
     return console.log(err);
 
@@ -77,7 +88,7 @@ client.send('groups', function(err, groups) {
 ```
 ##### Get group members
 ```javascript
-client.send('group:members', group, function(err, members) {
+client.exec('group:members', group, function(err, members) {
   if (err)
     return console.log(err);
 

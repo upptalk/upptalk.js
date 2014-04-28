@@ -1,7 +1,7 @@
 ### Manage contacts
 ##### Get contacts
 ```javascript
-client.send('contacts', function(err, contacts) {
+client.exec('contacts', function(err, contacts) {
   if (err)
     return console.log(err);
 
@@ -20,7 +20,7 @@ var patch = [{
     ]
   }
 }];
-client.send('contacts', patch, function(err) {
+client.exec('contacts', patch, function(err) {
   if (err)
     return console.log(err);
 
@@ -33,7 +33,7 @@ var patch = [{
   op: 'remove',
   path: '/id'
 }];
-client.send('contacts', patch, function(err) {
+client.exec('contacts', patch, function(err) {
   if (err)
     return console.log(err);
 
@@ -58,7 +58,7 @@ var sync = {
   username: ['janedoe'],
   twitter: 'cuicui'
 };
-client.send('sync', sync, function(err, synced) {
+client.exec('sync', sync, function(err, synced) {
   if (err)
     return console.log(err);
 
@@ -79,7 +79,7 @@ client.send('sync', sync, function(err, synced) {
 ### Phones
 Phones method will return the phone numbers associated to a username.
 ```javascript
-client.send('phones', username, function(err, phones) {
+client.exec('phones', username, function(err, phones) {
   if (err)
     return console.log(err);
 
@@ -90,7 +90,7 @@ client.send('phones', username, function(err, phones) {
 ```
 ### Get profile
 ```javascript
-client.send('profile', username, function(err, profile) {
+client.exec('profile', username, function(err, profile) {
   if (err)
     return console.log(err);
 
@@ -103,7 +103,7 @@ client.send('profile', username, function(err, profile) {
 ```
 ### Get last activity
 ```javascript
-client.send('last-activity', username, function(err, lastActivity) {
+client.exec('last-activity', username, function(err, lastActivity) {
   if (err)
     return console.log(err);
 
