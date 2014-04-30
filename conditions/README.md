@@ -11,14 +11,15 @@ Condition: if platform/context allows it
 When the application gets user credentials it should store the response token and reuse it for further authentication.
 
 If server respond to the authentication token request with an error, the application should re-authenticate with user credentials or ask the user for credentials.
-The response token should be stored and reused for further authentication.
-
-### Presence
+The response token should be stored and reused for further authentication requests.
 
 Condition: if platform/context allows it
 
-When sending presence, the application MUST store the device id and reuse it for further presence request.
-The application MAY store the user credentials (username and password) too.
+The authentication payload MUST include a device id.
+If the platform/context doesn't provide a way to get a unique id (for example on the Web), application must generate a UUID.
+As for token, the application should store the id and reuse it for further authentication requests.
+
+### Presence
 
 Condition: required
 
