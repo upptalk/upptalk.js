@@ -1,23 +1,28 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.7",
+  "version": "0.6.8",
   "homepage": "https://github.com/upptalk/upptalk.js",
   "authors": [
     "Sonny Piers <sonny@upptalk.com>"
   ],
   "main": "dist/upptalk.min.js",
   "dependencies": {
-    "es6-promise": "~0.1.1"
+    "es6-promise": "~1.0.0"
+  },
+  "devDependencies": {
+    "conducto": "~0.0.6"
   },
   "ignore": [
-    "bin",
-    "console",
-    "doc",
-    "example",
-    "lib",
-    "node_modules",
-    "test",
+    "bin/",
+    "bower_components/",
+    "conditions/",
+    "console/",
+    "doc/",
+    "example/",
+    "lib/",
+    "node_modules/",
+    "test/",
     ".gitignore",
     ".jshintignore",
     ".jshintrc",

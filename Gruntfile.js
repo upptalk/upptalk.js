@@ -8,14 +8,7 @@ module.exports = function(grunt) {
     concat: {
       dist: {
         src: [
-          'node_modules/wolfy87-eventemitter/EventEmitter.js',
-          'node_modules/conducto-client/node_modules/httpclient/lib/browser.js',
-          'node_modules/conducto-client/node_modules/httpclient/index.js',
-          'node_modules/conducto-client/node_modules/httpclient/lib/utils.js',
-          'node_modules/conducto-client/node_modules/conducto-core/index.js',
-          'node_modules/conducto-client/node_modules/conducto-core/lib/utils.js',
-          'node_modules/conducto-client/node_modules/conducto-core/lib/Connection.js',
-          'node_modules/conducto-client/lib/Client.js',
+          'bower_components/conducto/dist/conducto.js',
           'lib/PhoneNumber/PhoneNumberMetaData.js',
           'lib/PhoneNumber/PhoneNumberNormalizer.js',
           'lib/PhoneNumber/PhoneNumber.js',
