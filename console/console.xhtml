@@ -2,47 +2,55 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>UppTalk console</title>
-    <meta charset="UTF-8"/>
+    <meta charset="utf-8"/>
     <link type="text/css" rel="stylesheet" href="console.css"/>
     <script type="application/javascript" src="../dist/upptalk.js"/>
     <script type="application/javascript" src="console.js"/>
   </head>
   <body>
-    <div id="header">
-      <form id="connect">
-        <div hidden="hidden">
+    <header>
+      <p>Status: <span id="status">closed</span></p>
+    </header>
+    <section id="console" hidden="">
+      <form id="input">
+        <textarea name="data"/>
+        <input type="submit" value="send"/>
+      </form>
+      <div id="console"/>
+      <div id="logs"/>
+    </section>
+    <section id="connect" hidden="">
+      <form autocomplete="on">
+        <p>
           <label for="host">Host</label>
-          <input type="text" required="required" name="hostname" placeholder="happy.dev.ym.ms" value="happy.dev.ym.ms"/>
-        </div>
-        <div hidden="hidden">
+          <input type="text" required="required" name="host" placeholder="host"/>
+        </p>
+        <p>
           <label for="secure">Port</label>
-          <input type="text" required="required" name="port" placeholder="443" value="443"/>
-        </div>
-        <div hidden="hidden">
+          <input type="text" required="required" name="port" placeholder="port"/>
+        </p>
+        <p>
           <label for="secure">Secure</label>
-          <input type="checkbox" required="required" name="secure" checked="checked"/>
-        </div>
-        <div>
+          <input type="checkbox" name="secure"/>
+        </p>
+        <p>
           <label for="secure">API Key</label>
-          <input type="text" name="apikey" required="required" placeholder=""/>
-        </div>
-        <div>
+          <input type="text" name="apikey" required="required" placeholder="api key"/>
+        </p>
+<!--         <p>
           <label for="secure">Username</label>
-          <input type="text" name="username" placeholder=""/>
-        </div>
-        <div>
+          <input type="text" name="username" placeholder="username"/>
+        </p>
+        <p>
           <label for="secure">Password</label>
-          <input type="password" name="password" placeholder=""/>
-        </div>
+          <input type="password" name="password" placeholder="password"/>
+        </p> -->
+        <p>
+          <label for="remember">Remember</label>
+          <input type="checkbox" name="remember" checked="true"/>
+        </p>
         <input type="submit" value="connect"/>
       </form>
-      <p>Status: <span id="status">closed</span></p>
-    </div>
-    <form id="input">
-      <textarea name="data"/>
-      <input type="submit" value="send"/>
-    </form>
-    <div id="console"/>
-    <div id="logs"/>
+    </section>
   </body>
 </html>
