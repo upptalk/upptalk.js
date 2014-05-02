@@ -1,7 +1,7 @@
 ### Password
 ##### Reset password
 ```javascript
-client.send('password:reset', EMAIL, function(err) {
+client.exec('password:reset', EMAIL, function(err) {
   if (err)
     return console.log(err);
 
@@ -10,7 +10,7 @@ client.send('password:reset', EMAIL, function(err) {
 ```
 ##### Change password
 ```javascript
-client.send('password', password, function(err) {
+client.exec('password', password, function(err) {
   if (err)
     return console.log(err);
 
@@ -33,7 +33,7 @@ var profile = {
   region: 'US-AL',
   country: 'US'
 };
-client.send('profile', profile, function(err) {
+client.exec('profile', profile, function(err) {
   if (err)
     return console.log(err);
 
@@ -42,7 +42,7 @@ client.send('profile', profile, function(err) {
 ```
 ##### Get profile
 ```javascript
-client.send('profile', function(err, profile) {
+client.exec('profile', function(err, profile) {
   if (err)
     return console.log(err);
 
@@ -57,5 +57,5 @@ var chatstate = {
   type: //either 'composing' or 'paused',
   user: //username
 }
-client.send('chatstate', chatstate);
+client.exec('chatstate', chatstate);
 ```

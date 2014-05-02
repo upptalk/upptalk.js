@@ -3,47 +3,103 @@
 'use strict';
 
 var UppTalk = require('..');
+var pd = require('pretty-data').pd;
 
-var DEBUG = function() {
-  if (opts.verbose)
-    console.log.apply(console, arguments);
+var DEBUG = function(n, d) {
+  if (!opts.debug)
+    return;
+
+  var type;
+  if (n === 'OUT:' || n === 'IN:')
+    type = 'JSON';
+  else if (n === 'XMPP IN:' || n === 'XMPP OUT:')
+    type = 'XML';
+
+  if (!opts.pretty) {
+    if (type === 'JSON')
+      d = pd.jsonmin(d);
+    else if (type === 'XML')
+      d = pd.xmlmin(d, false);
+  }
+  else {
+    if (type === 'JSON')
+      d = '\n' + pd.json(d);
+    else if (type === 'XML')
+      d = '\n' + pd.xml(d);
+  }
+
+  var date = new Date();
+  var t = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '.' + date.getMilliseconds();
+
+  if (n)
+    n = t + ' - ' + n;
+
+  if (d)
+    console.log(n, d);
+  else
+    console.log(n);
 };
+
 var nomnom = require('nomnom');
 
 var opts = nomnom
-  .option('verbose', {
-    abbr: 'v',
+  .script('upptalk')
+  .option('debug', {
+    abbr: 'd',
     flag: true,
     help: 'Print debugging info'
   })
   .option('apikey', {
-    // abbr: 'k', broken
     required: true,
     help: 'Set your api key'
   })
   .option('auth', {
-    // abbr: 'a', broken
     help: 'Set your credentials, <username>:<password>'
   })
   .option('host', {
-    // abbr: 'h', broken
     help: 'Specifiy host'
   })
   .option('port', {
-    // abbr: 'p', broken
     help: 'Specify port',
   })
   .option('secure', {
     // abbr: 's', broken
+    choices: [true, false],
+    default: true,
     help: 'Specify either to use TLS, true or false'
+  })
+  .option('keepalive', {
+    help: 'Keep connection alive (open)',
+    abbr: 'k',
+    flag: true
+  })
+  .option('presence', {
+    help: 'Send presence after authenticating',
+    abbr: 'P',
+    flag: true
+  })
+  .option('happy', {
+    abbr: 'H',
+    help: 'Print happy (JSON) traffic, enables debug',
+    flag: true,
+  })
+  .option('xmpp', {
+    abbr: 'X',
+    help: 'Print XMPP (XML) traffic, enables debug',
+    flag: true
   })
   .option('version', {
     flag: true,
     help: 'print version and exit',
-    abbr: 'V',
+    abbr: 'v',
     callback: function() {
-      return '0.6.5';
+      return require('../package.json').version;
     }
+  })
+  .option('pretty', {
+    flag: true,
+    abbr: 'p',
+    help: 'Pretty print traffic',
   })
   .option('method', {
     position: '0',
@@ -70,6 +126,8 @@ try {
 catch (e) {
   payload = opts.payload;
 }
+if (opts.xmpp || opts.happy)
+  opts.debug = true;
 
 var options = {};
 if (opts.host)
@@ -82,37 +140,83 @@ if ('secure' in opts)
   options.secure = opts.secure;
 
 var client = new UppTalk(options);
-client.keepalive = false;
+if (!opts.keepalive)
+  client.keepalive = false;
 
 DEBUG('OPENING');
 
+var timeAtSending;
+
 var p = client.open();
+if (opts.xmpp) {
+  p = p.then(function() {
+    DEBUG('ENABLING XMPP FORWARDING');
+    var now = Date.now();
+    return client.exec('options', {xmpp: true})
+    .then(function() {
+      DEBUG('XMPP FORWARDING ENABLED', Date.now() - now + 'ms');
+    });
+  });
+}
 if (username && password) {
   p = p.then(function() {
     DEBUG('AUTHENTICATING');
+    var now = Date.now();
     return client.exec('authenticate', {username: username, password: password})
     .then(function() {
-      DEBUG('AUTHENTICATED');
+      DEBUG('AUTHENTICATED', Date.now() - now + 'ms');
+    });
+  });
+}
+if (opts.presence) {
+  p = p.then(function() {
+    DEBUG('SENDING PRESENCE');
+    var now = Date.now();
+    return client.exec('presence')
+    .then(function() {
+      DEBUG('PRESENCE SENT', Date.now() - now + 'ms');
     });
   });
 }
 p.then(function() {
+  DEBUG('SENDING REQUEST');
+  timeAtSending = Date.now();
   return client.exec(method, payload);
 })
 .then(function(res) {
-  if (res)
-    console.log(res);
-  onresponse();
+  done(undefined, res);
 })
 .catch(function(err) {
-  if (err)
+  if (err instanceof Error) {
     console.error(err);
-  onresponse();
+    process.exit();
+  }
+  done(err);
 });
 
-var onresponse = function() {
-  DEBUG('CLOSING');
-  client.close();
+var done = function(err, res) {
+  //when debugging is enabled, response is already printed
+  if (!opts.debug || !opts.happy) {
+    err = err ? JSON.stringify(err) : err;
+    res = res ? JSON.stringify(res) : res;
+
+    if (opts.pretty) {
+      err = err ? pd.json(err) : err;
+      res = res ? pd.json(res) : res;
+    }
+
+    if (err)
+      console.log(err);
+    else if (res)
+      console.log(res);
+  }
+
+  DEBUG('RECEIVED RESPONSE', Date.now() - timeAtSending + 'ms');
+
+  if (!opts.keepalive) {
+    DEBUG('CLOSING');
+    client.close();
+  }
 };
 
 client.once('open', function() {
@@ -122,13 +226,18 @@ client.once('close', function() {
   DEBUG('CLOSED');
   process.exit(1);
 });
-client.on('send', function(m) {
-  DEBUG('SENDING:');
-  DEBUG(m);
-});
+if (opts.happy) {
+  client.on('send', function(m) {
+    DEBUG('OUT:', JSON.stringify(m));
+  });
+}
 client.on('message', function(m) {
-  DEBUG('RECEIVED:');
-  DEBUG(m);
+  if (m.method === 'xmpp:out')
+    DEBUG('XMPP OUT:', m.payload);
+  else if (m.method === 'xmpp:in')
+    DEBUG('XMPP IN:', m.payload);
+  else if (opts.happy)
+    DEBUG('IN:', JSON.stringify(m));
 });
 client.on('error', function(err) {
   throw err;

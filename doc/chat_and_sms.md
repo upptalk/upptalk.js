@@ -12,11 +12,11 @@ var receipt = {
   id: //message id,
   type: //'received' or 'read'
 }
-client.send('receipt', receipt);
+client.exec('receipt', receipt);
 ```
 ### Upload
 ```javascript
-client.send('upload', File, function(err, res) {
+client.exec('upload', File, function(err, res) {
 
 });
 ```
@@ -25,7 +25,7 @@ client.send('upload', File, function(err, res) {
 ### Message
 ##### Upload a file
 ```javascript
-client.send('upload', file,
+client.exec('upload', file,
   //when request completes
   function(err, result) {
   },
@@ -86,5 +86,5 @@ message.location = {
   }
 };
 
-client.send('chat', message);
+client.exec('chat', message);
 ```

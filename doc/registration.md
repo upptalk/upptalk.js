@@ -3,7 +3,7 @@ The first one is a captcha to make sure the user is actually human.
 The second one is the actual registration process.
 
 ```javascript
-client.send('captcha', function(err, captcha) {
+client.exec('captcha', function(err, captcha) {
   if (err)
     return console.log(err);
 
@@ -34,7 +34,7 @@ var payload = {
                 //see: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
   token:    '', //the captcha token
 };
-client.send('register', payload, function(err) {
+client.exec('register', payload, function(err) {
   if (err)
     return console.log(err);
 

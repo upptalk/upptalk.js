@@ -1,8 +1,8 @@
-console
-dist
-doc
-example
-test
+console/
+dist/
+doc/
+example/
+test/
 .gitignore
 .jshintignore
 .jshintrc

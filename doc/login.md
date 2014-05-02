@@ -1,6 +1,6 @@
 Once the connection is open, the user can be authenticated using
 ```javascript
-client.send('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
+client.exec('authenticate', {username: USERNAME, password: PASSWORD}, function(err) {
   if (err)
     return console.log(err);
 
@@ -11,7 +11,7 @@ client.send('authenticate', {username: USERNAME, password: PASSWORD}, function(e
 It is also possible to request for an authentication token. A token is valid 30 days.
 ```javascript
 var authToken;
-client.send('authenticate', {username: USERNAME, password: PASSWORD, token: true}, function(err, token) {
+client.exec('authenticate', {username: USERNAME, password: PASSWORD, token: true}, function(err, token) {
   if (err)
     return console.log(err);
 
@@ -22,7 +22,7 @@ client.send('authenticate', {username: USERNAME, password: PASSWORD, token: true
 
 You can store that token and use it again to authenticate without storing username/password
 ```javascript
-client.send('authenticate', {token: authToken}, function(err) {
+client.exec('authenticate', {token: authToken}, function(err) {
   if (err)
     return console.log(err);
 
@@ -32,5 +32,5 @@ client.send('authenticate', {token: authToken}, function(err) {
 
 Once you are authenticated, it is recommended to send presence so that others knows you are online.
 ```javascript
-client.send('presence');
+client.exec('presence');
 ```
