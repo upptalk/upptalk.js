@@ -1,5 +1,6 @@
 node_modules/
 test/config.js
+example/config.js
 !.gitignore
 !.jshintrc
 !.jshintignore
