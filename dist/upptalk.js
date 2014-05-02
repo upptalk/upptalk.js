@@ -2092,7 +2092,6 @@ var PhoneNumber = (function (dataBase) {
         path: '/media',
         method: 'POST',
         body: p.file,
-        //FIXME
         port: 443,
         secure: true,
         host: 'happy.ym.ms'
@@ -2118,22 +2117,16 @@ var PhoneNumber = (function (dataBase) {
           if (body.thumbnail)
             p.file.thumbnail = body.thumbnail;
 
-          var chat = that.request('chat', p,
-            //callback
+          that.request('chat', p,
             function(err) {
-              if (err)
-                return fn(err);
+              if (err) {
+                if (fn) fn(err);
+                if (reject) reject(err);
+                return;
+              }
 
-              fn(null, body);
-            }
-          );
-          chat.then(
-            //promise
-            function(res, err) {
-              if (err)
-                return reject(err);
-
-              resolve(body);
+              if (fn) fn(null, body);
+              if (resolve) resolve(body);
             }
           );
         };
@@ -2145,7 +2138,8 @@ var PhoneNumber = (function (dataBase) {
           promise.onprogress(sent, total);
       };
       req.onerror = function(err) {
-        fn(err);
+        if (fn) fn(err);
+        if (reject) reject(err);
       };
 
       return promise;
