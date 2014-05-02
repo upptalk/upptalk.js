@@ -44,7 +44,7 @@
         console.log('callback done', err, res);
       },
       function(sent, total) {
-        console.log('callback progress', ((sent * 100) / total) + '%');
+        console.log('callback progress', (sent * 100 / total) + '%');
       }
     );
     //promise style :
@@ -52,7 +52,7 @@
       console.log('promise done', err, res);
     });
     p.onprogress = function(sent, total) {
-      console.log('promise progress', ((sent * 100) / total) + '%');
+      console.log('promise progress', (sent * 100 / total) + '%');
     };
   });
 
