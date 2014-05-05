@@ -92,7 +92,7 @@ message.location = {
 client.exec('chat', message);
 ```
 
-Please note that for file message you can directly send a File or Blob instance. In this case, a progress event is trigerred. The progress event matches the upload progress of the file.
+Please note that for file message you can directly define a File or Blob instance. In this case, a progress event is trigerred. The progress event matches the upload progress of the file.
 
 ```javascript
 var message = {
