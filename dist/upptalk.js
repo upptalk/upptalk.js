@@ -2629,6 +2629,20 @@ var PhoneNumber = (function (dataBase) {
 
     Conducto.call(this, config);
 
+    //webrtc enabled
+    if (this.call) {
+      this.turn = config.turn;
+      this.on('webrtc', function(p) {
+        this.handleWebRTCPacket(p);
+      });
+    }
+    else {
+      this.on('webrtc', function(p) {
+        if (p.type !== 'error')
+          this.send('webrtc', {id: p.id, user: p.user, type: 'error'});
+      });
+    }
+
     for (var j in UppTalk.actions) {
       this.define(j, UppTalk.actions[j]);
     }
