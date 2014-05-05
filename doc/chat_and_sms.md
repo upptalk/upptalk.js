@@ -42,6 +42,7 @@ client.on('message', function(message) {
 });
 ```
 ##### Send message
+
 ```javascript
 var message = {
   id: 'id'
@@ -63,7 +64,8 @@ message.number = 'phone number';
 
 //text
 message.text = 'message';
-//file
+
+//or file
 message.file = {
   url: 'https://example.com/file.jpeg',
   size: '1234',
@@ -74,7 +76,8 @@ message.file = {
     type: 'image/jpeg'
   }
 };
-//location
+
+//or location
 message.location = {
   url: 'https://maps.google.com/example',
   latitude: '34.4322',
@@ -88,3 +91,33 @@ message.location = {
 
 client.exec('chat', message);
 ```
+
+Please note that for file message you can directly send a File or Blob instance. In this case, a progress event is trigerred. The progress event matches the upload progress of the file.
+
+```javascript
+var message = {
+  id: 'id',
+  user: 'example',
+  file: Blob
+};
+
+client.exec('chat', message,
+  //done
+  function(err) {
+    if (err)
+      console.log(err);
+    else
+      console.log('message sent');
+  },
+  //progress
+  function(sent, total) {
+    //sent is the number of bytes sent
+    //total is the size in bytes of the file
+    if (total) {
+      console.log('progress', (sent * 100 / total) + '%');
+    }
+  }
+);
+```
+
+There is also an example in doc/send-file.
