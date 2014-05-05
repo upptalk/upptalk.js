@@ -908,6 +908,53 @@
 
   'use strict';
 
+  var parseArguments = function(args) {
+    var parsed = {
+      arguments: []
+    };
+
+    if (!args || !args.length)
+      return parsed;
+
+    var i;
+
+    if (typeof args[0] === 'object') {
+      ['method', 'payload', 'id', 'error', 'result'].forEach(function(k) {
+        if (k in args[0])
+          parsed[k] = args[0][k];
+      });
+
+      if (typeof args[1] === 'function') {
+        parsed.callback = args[1];
+        i = 2;
+      }
+      else
+        i = 1;
+    }
+    else if (typeof args[0] === 'string') {
+      parsed.method = args[0];
+
+      if (typeof args[1] === 'function') {
+        parsed.callback = args[1];
+        i = 2;
+      }
+      else if (1 in args) {
+        parsed.payload = args[1];
+        if (typeof args[2] === 'function') {
+          parsed.callback = args[2];
+          i = 3;
+        }
+        else {
+          i = 2;
+        }
+      }
+    }
+
+    for (var l = args.length; i < l; i++)
+      parsed.arguments.push(args[i]);
+
+    return parsed;
+  };
   var parse = function(data) {
     if (typeof data !== 'string')
       return new TypeError('Not a string');
@@ -954,18 +1001,15 @@
   }
 
   var Promise;
-  if (typeof module !== 'undefined' && module.exports) {
-    if (!global.Promise) {
-      try {
-        Promise = require('es6-promise').Promise;
-      }
-      catch (ex) {}
-    }
-  }
-  else {
+  if (global.Promise) {
     Promise = global.Promise;
   }
-
+  else if (typeof module !== 'undefined' && module.exports) {
+    try {
+      Promise = require('es6-promise').Promise;
+    }
+    catch (ex) {}
+  }
 
   var mixin = function(dest, src) {
     for (var i in src) {
@@ -977,6 +1021,7 @@
   };
 
   var utils = {
+    parseArguments: parseArguments,
     parse: parse,
     serialize: serialize,
     inherits: inherits,
@@ -1060,30 +1105,18 @@
       else if (!message.method)
         this.onResponse(message);
     },
-    notify: function(method, payload) {
-      var notification = {
-        method: method
-      };
-      if (payload !== undefined)
-        notification.payload = payload;
-
-      this.sendNotification(notification);
-    },
     exec: function(method) {
       //overrided by a custom action
-      if (this.actions[method])
-        return this.actions[method].apply(this, Array.prototype.slice.call(arguments, 1));
+      if (this.actions[method]) {
+        var h = this.actions[method].apply(this, Array.prototype.slice.call(arguments, 1));
+        if (h !== false)
+          return h;
+      }
 
       return this.request.apply(this, arguments);
     },
     send: function(method, payload, cb) {
-      //direct message sending
-      if (typeof arguments[0] === 'object') {
-        if (typeof arguments[1] === 'function')
-          this.sendRequest(arguments[0], arguments[1]);
-        else
-          this.sendNotification(arguments[0]);
-      }
+      var args = utils.parseArguments(arguments);
 
       //arguments
       if (typeof arguments[1] === 'function') {
@@ -1095,17 +1128,14 @@
         cb = typeof arguments[2] === 'function' ? arguments[2] : undefined;
       }
 
-      if (!cb)
-        this.notify(method, payload);
-      else {
-        if (payload !== undefined)
-          this.request(method, payload, cb);
+      if ('callback' in args) {
+        if ('payload' in  args)
+          this.request(args.method, args.payload, args.callback);
         else
-          this.request(method, cb);
+          this.request(args.method, args.callback);
       }
-    },
-    defineAction: function(name, fn) {
-      this.actions[name] = fn.bind(this);
+      else
+        this.notify(args.method, args.payload);
     },
     sendMessage: function(message) {
       if (!this.transport)
@@ -1113,26 +1143,34 @@
       if (this.readyState !== 1)
         return; //FIXME do something?
 
-      var serialized = utils.serialize(message);
+      var obj = Object.create(null);
+
+      //request/notification
+      if ('method' in message) {
+        obj.method = message.method;
+        if ('payload' in message)
+          obj.payload = message.payload;
+        if ('id' in message)
+          obj.id = message.id;
+      }
+      //response
+      else {
+        if ('result' in message)
+          obj.result = message.result;
+        if ('error' in message)
+          obj.error = message.error;
+        if ('id' in message)
+          obj.id = message.id;
+      }
+
+      var serialized = utils.serialize(obj);
       if (serialized instanceof Error)
         return serialized;
 
       this.transport.send(serialized);
 
-      this.emit('send', message, serialized);
+      this.emit('send', obj, serialized);
     },
-    //FIXME delete this?
-    // onRequest: function(request) {
-    //   return;
-    //   // var handler = this.getRequestHandler(request.method);
-    //   // if (handler)
-    //   //   return handler(request);
-    //   // var middleware = this.server ? this.server.middlewares[request.method] : null;
-    //   // if (!middleware)
-    //   //   this.respond(request, {message: 'Method not found'});
-
-    //   // this.emit('request', request);
-    // },
     onResponse: function(response) {
       var handler = this.getResponseHandler(response.id);
       if (handler) {
@@ -1140,30 +1178,44 @@
         this.deleteResponseHandler(response.id);
       }
     },
-    sendNotification: function(notif) {
-      delete notif.id;
-      this.sendMessage(notif);
+    sendResponse: function(m) {
+      delete m.method;
+      delete m.payload;
+      return this.sendMessage(m);
     },
-    sendRequest: function(request, cb) {
-      if (request.id === undefined)
-        request.id = (this.lastId++).toString();
+    sendNotification: function(m) {
+      delete m.id;
+      return this.sendMessage(m);
+    },
+    sendRequest: function(m) {
+      if (typeof m.id !== 'string')
+        m.id = (this.lastId++).toString();
 
-      if (!utils.Promise && !cb)
-        return this.sendMessage(request);
+      return this.sendMessage(m);
+    },
+    notify: function(method, payload) {
+      var args = utils.parseArguments(arguments);
+      this.sendNotification(args);
+    },
+    request: function(method, payload, cb) {
+      var args = utils.parseArguments(arguments);
+
+      this.sendRequest(args);
+
+      if (!utils.Promise && args.callback)
+        return;
 
       var resolve;
       var reject;
 
-      this.addResponseHandler(request.id, function(err, res) {
-        if (cb)
-          cb(err, res);
+      this.addResponseHandler(args.id, function(err, res) {
+        if (args.callback)
+          args.callback(err, res);
         if (err && reject)
           reject(err);
         else if (resolve)
           resolve(res);
       });
-
-      this.sendMessage(request);
 
       if (utils.Promise) {
         return new utils.Promise(function(resolved, rejected) {
@@ -1172,36 +1224,20 @@
         });
       }
     },
-    request: function(method, payload, cb) {
-      var request = {
-        method: method
-      };
+    respond: function(id, error, result) {
+      if (typeof id === 'object')
+        id = id.id;
 
-      if (typeof arguments[1] === 'function') {
-        cb = arguments[1];
-        payload = undefined;
-      }
-      else {
-        cb = arguments[2];
-        payload = arguments[1];
-      }
-
-      if (payload !== undefined)
-        request.payload = payload;
-
-      return this.sendRequest(request, cb);
-    },
-    respond: function(request, error, result) {
-      var response = {
-        id: request.id
+      var m = {
+        id: id
       };
 
       if (error !== null && error !== undefined)
-        response.error = error;
+        m.error = error;
       else if (result !== undefined)
-        response.result = result;
+        m.result = result;
 
-      this.sendMessage(response);
+      this.sendResponse(m);
     },
     //
     //response handler
@@ -1214,6 +1250,67 @@
     },
     deleteResponseHandler: function(id) {
       delete this.responseHandlers[id];
+    },
+    define: function(method, bind) {
+      var fn = function() {
+        var o = {
+          arguments: []
+        };
+        var cb;
+        var i;
+        if (typeof arguments[0] === 'function') {
+          cb = arguments[0];
+          i = 1;
+        }
+        else if (0 in arguments) {
+          o.payload = arguments[0];
+          if (typeof arguments[1] === 'function') {
+            cb = arguments[1];
+            i = 2;
+          }
+          else {
+            i = 1;
+          }
+        }
+        else {
+          i = 0;
+        }
+
+        for (var l = arguments.length; i < l; i++)
+          o.arguments.push(arguments[i]);
+
+        var promise;
+        var resolve;
+        var reject;
+        if (utils.Promise) {
+          promise = new utils.Promise(function(res, rej) {
+            resolve = res;
+            reject = rej;
+          });
+        }
+        fn = function(err, res) {
+          if (err) {
+            if (cb) cb(err);
+            if (reject) reject(err);
+            return;
+          }
+
+          if (cb) cb(null, res);
+          if (resolve) resolve(res);
+        };
+        if (cb) fn.callback = cb;
+        if (promise) fn.promise = promise;
+
+        o.callback = fn;
+
+        var h = bind.call(this, o);
+        if (h === false)
+          return h;
+
+        if (promise) return promise;
+      };
+
+      this.actions[method] = fn;
     },
   };
   utils.mixin(Connection.prototype, methods);
@@ -1387,7 +1484,7 @@
         options[i] = opts[i];
 
       this.http.request(options, callback);
-    }
+    },
   };
 
   utils.mixin(Client.prototype, methods);
@@ -2035,15 +2132,163 @@ var PhoneNumber = (function (dataBase) {
 
   'use strict';
 
+  if (typeof module !== 'undefined' && module.exports) {
+    var path = require('path');
+    var fs = require('fs');
+    var actionsPath = path.join(__dirname, 'lib', 'actions');
+    var UppTalk = require(path.join(__dirname, 'lib', 'UppTalk.js'));
+    UppTalk.actions = {};
+    var actions = fs.readdirSync(actionsPath);
+    actions.forEach(function(p) {
+      var action = require(path.join(actionsPath, p));
+      UppTalk.actions[action.method] = action.bind;
+    });
+    module.exports = UppTalk;
+  }
+  else {
+    global.UppTalkActions = {};
+  }
+
+})(this);
+
+
+(function(global) {
+
+  'use strict';
+
+  var action = {
+    method: 'chat',
+    bind: function(o) {
+      var p = o.payload;
+      var fn = o.callback;
+      var onprogress = o.arguments[0];
+      if (
+        typeof p !== 'object' ||
+        !p.file ||
+        typeof Blob === 'undefined' ||
+        typeof File === 'undefined' ||
+        (!(p.file instanceof Blob) && !(p.file instanceof File))
+      )
+        return false;
+
+      var options = {
+        path: '/media',
+        method: 'POST',
+        body: p.file,
+        port: 443,
+        secure: true,
+        host: 'happy.ym.ms'
+      };
+
+      var that = this;
+
+      var req = this.http.request(options);
+      req.onresponse = function(res) {
+        res.onend = function(body) {
+          body = JSON.parse(body.toString());
+          p.file = body.file;
+          if (body.thumbnail)
+            p.file.thumbnail = body.thumbnail;
+
+          that.request('chat', p, function(err) {
+            fn(err, body);
+          });
+        };
+      };
+      req.onprogress = function(sent, total) {
+        if (typeof onprogress === 'function')
+          onprogress(sent, total);
+        if (fn.promise && typeof fn.promise.onprogress === 'function')
+          fn.promise.onprogress(sent, total);
+      };
+      req.onerror = function(err) {
+        fn(err);
+      };
+    }
+  };
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = action;
+  else
+    global.UppTalkActions[action.method] = action.bind;
+
+})(this);
+(function(global) {
+
+  'use strict';
+
+  var action = {
+    method: 'profile',
+    bind: function(o) {
+      var p = o.payload;
+      var fn = o.callback;
+      var onprogress = o.arguments[0];
+      if (
+        typeof p !== 'object' ||
+        !p.avatar ||
+        typeof Blob === 'undefined' ||
+        typeof File === 'undefined' ||
+        (!(p.avatar instanceof Blob) && !(p.avatar instanceof File))
+      )
+        return false;
+
+      var options = {
+        path: '/avatar',
+        method: 'POST',
+        body: p.avatar,
+        port: 443,
+        secure: true,
+        host: 'happy.ym.ms'
+      };
+
+      var that = this;
+
+      var req = this.http.request(options);
+      req.onresponse = function(res) {
+        res.onend = function(body) {
+          var url = (
+            (options.secure ? 'https' : 'http') +
+            '://' + options.host + ':' + options.port +
+            options.path + '/' + body.toString()
+          );
+          p.avatar = url;
+
+          that.request('profile', p, function(err) {
+            fn(err, p);
+          });
+        };
+      };
+      req.onprogress = function(sent, total) {
+        if (typeof onprogress === 'function')
+          onprogress(sent, total);
+        if (fn.promise && typeof fn.promise.onprogress === 'function')
+          fn.promise.onprogress(sent, total);
+      };
+      req.onerror = function(err) {
+        fn(err);
+      };
+    }
+  };
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = action;
+  else
+    global.UppTalkActions[action.method] = action.bind;
+
+})(this);
+(function(global) {
+
+  'use strict';
+
   var Conducto;
-  var Promise;
+  var utils;
   if (typeof module !== 'undefined' && module.exports) {
     Conducto = require('conducto-client');
-    Promise = Conducto.utils.Promise;
+    utils = Conducto.utils;
   }
   else {
     Conducto = global.conducto.Client;
-    Promise = global.conducto.utils.Promise;
+    utils = global.conducto.utils;
   }
 
   var defaultConfig = {
@@ -2072,84 +2317,18 @@ var PhoneNumber = (function (dataBase) {
 
     Conducto.call(this, config);
 
-    for (var j in actions) {
-      this.defineAction(j, actions[j]);
+    for (var j in UppTalk.actions) {
+      this.define(j, UppTalk.actions[j]);
     }
   };
   UppTalk.prototype = Conducto.prototype;
 
-  var actions = {
-    chat: function(p, fn, onprogress) {
-      if (
-        !p.file ||
-        typeof Blob === 'undefined' ||
-        typeof File === 'undefined' ||
-        (!(p.file instanceof Blob) && !(p.file instanceof File))
-      )
-        return this.request('chat', p, fn);
-
-      var options = {
-        path: '/media',
-        method: 'POST',
-        body: p.file,
-        port: 443,
-        secure: true,
-        host: 'happy.ym.ms'
-      };
-
-      var that = this;
-
-      var promise;
-      var resolve;
-      var reject;
-      if (Promise) {
-        promise = new Promise(function(res, rej) {
-          resolve = res;
-          reject = rej;
-        });
-      }
-
-      var req = this.http.request(options);
-      req.onresponse = function(res) {
-        res.onend = function(body) {
-          body = JSON.parse(body.toString());
-          p.file = body.file;
-          if (body.thumbnail)
-            p.file.thumbnail = body.thumbnail;
-
-          that.request('chat', p,
-            function(err) {
-              if (err) {
-                if (fn) fn(err);
-                if (reject) reject(err);
-                return;
-              }
-
-              if (fn) fn(null, body);
-              if (resolve) resolve(body);
-            }
-          );
-        };
-      };
-      req.onprogress = function(sent, total) {
-        if (onprogress)
-          onprogress(sent, total);
-        if (promise && promise.onprogress)
-          promise.onprogress(sent, total);
-      };
-      req.onerror = function(err) {
-        if (fn) fn(err);
-        if (reject) reject(err);
-      };
-
-      return promise;
-    }
-  };
-
   if (typeof module !== 'undefined' && module.exports)
     module.exports = UppTalk;
-  else
+  else {
+    UppTalk.actions = global.UppTalkActions;
     global.UppTalk = UppTalk;
+  }
 
 })(this);
 

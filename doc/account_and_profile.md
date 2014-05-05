@@ -27,10 +27,11 @@ var profile = {
   fullname: 'John Doe',
   nickname: 'John',
   email: 'john@doe.com',
-  birthday: '1234-12-30',
+  birthday: '1234-12-30', //ISO 8601
   avatar: 'http://example.com/whatever.png',
   city: 'Denver',
   region: 'US-AL',
+  gender: 'M', //M or F
   country: 'US'
 };
 client.exec('profile', profile, function(err) {

@@ -1,7 +1,7 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.6.8",
+  "version": "0.7.0",
   "author": "Sonny Piers <sonny@upptalk.com>",
   "main": "lib/index.js",
   "bin": {
@@ -20,7 +20,7 @@
     "test": "grunt syntax --verbose"
   },
   "dependencies": {
-    "conducto-client": "~0.0.5",
+    "conducto-client": "~0.0.7",
     "nomnom": "~1.6.2",
     "es6-promise": "~1.0.0",
     "pretty-data": "~0.40.0"

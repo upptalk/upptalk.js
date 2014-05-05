@@ -64,7 +64,8 @@ message.number = 'phone number';
 
 //text
 message.text = 'message';
-//file
+
+//or file
 message.file = {
   url: 'https://example.com/file.jpeg',
   size: '1234',
@@ -75,7 +76,8 @@ message.file = {
     type: 'image/jpeg'
   }
 };
-//location
+
+//or location
 message.location = {
   url: 'https://maps.google.com/example',
   latitude: '34.4322',

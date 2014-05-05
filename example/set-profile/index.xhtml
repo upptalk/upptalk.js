@@ -1,15 +1,27 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <title>upptalk.js send file example</title>
+    <title>upptalk.js set profile example</title>
     <meta charset="UTF-8"/>
   </head>
   <body>
     <form>
-      <p>Send</p>
-      <input name="file" type="file" placeholder="file"/>
-      <p>To</p>
-      <input name="user" type="text" placeholder="user"/><br/>
+      <p>Set profile</p>
+      <input name="fullname" type="text" placeholder="Full name"/><br/>
+      <input name="nickname" type="text" placeholder="Nick name"/><br/>
+      <input name="email" type="email" placeholder="Email"/><br/>
+      <input name="birthday" type="date" placeholder="Birthday"/><br/>
+      <label for="gender">Gender</label>
+      <select name="gender">
+        <option></option>
+        <option vale="M">Male</option>
+        <option value="F">Female</option>
+      </select><br/>
+      <label for="avatar">Avatar</label>
+      <input name="avatar" type="file"/><br/>
+      <input name="city" type="text" placeholder="city"/><br/>
+      <input name="region" type="text" placeholder="region"/><br/>
+      <input name="country" type="text" placeholder="country"/><br/>
       <input type="submit" name="submit" disabled=""/>
     </form>
   </body>
@@ -26,7 +38,7 @@
   <script src="../../lib/PhoneNumber/PhoneNumberNormalizer.js"/>
   <script src="../../lib/PhoneNumber/PhoneNumber.js"/>
   <script src="../../index.js"/>
-  <script src="../../lib/actions/chat.js"/>
+  <script src="../../lib/actions/profile.js"/>
   <script src="../../lib/UppTalk.js"/> -->
 
   <script type="application/javascript" src="../config.js"/>

@@ -34,10 +34,16 @@
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    var p = client.exec('chat', {
-        user: form.elements.user.value,
-        file: form.elements.file.files[0],
-        id: Math.random().toString()
+    var p = client.exec('profile', {
+        fullname: form.elements.fullname.value,
+        nickname: form.elements.nickname.value,
+        email: form.elements.email.value,
+        birthday: form.elements.birthday.value,
+        avatar: form.elements.avatar.files[0],
+        city: form.elements.city.value,
+        region: form.elements.region.value,
+        country: form.elements.country.value,
+        gender: form.elements.gender.value
       },
       //callback style:
       function(err, res) {
