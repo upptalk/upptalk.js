@@ -2473,14 +2473,13 @@ var PhoneNumber = (function (dataBase) {
     global.mozRTCPeerConnection ||
     global.webkitRTCPeerConnection
   );
-  var getUserMedia;
-  if (global.navigator) {
-    getUserMedia = (
-      global.navigator.getUserMedia ||
-      global.navigator.mozGetUserMedia ||
-      global.navigator.webkitGetUserMedia
-    );
-  }
+  if (!global.navigator)
+    return;
+  global.navigator.getUserMedia = (
+    global.navigator.getUserMedia ||
+    global.navigator.mozGetUserMedia ||
+    global.navigator.webkitGetUserMedia
+  );
   var RTCSessionDescription = (
     global.RTCSessionDescription ||
     global.webkitRTCSessionDescription ||
