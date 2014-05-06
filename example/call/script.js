@@ -2,28 +2,27 @@
 
   'use strict';
 
+  var config = global.config;
+
   var client;
   var localVideo;
   var remoteVideo;
-  var user;
   var statusEl;
-  var config = global.config;
-
-  var options = {video: true, audio: true};
+  var callEl;
 
   //handle in and out calls
   var handleCall = function(call) {
 
-    var local;
-    var remote;
+    var localStream;
+    var remoteStream;
 
-    call.once('localstream', function(stream) {
-      local = stream;
-      localVideo.src = URL.createObjectURL(stream);
+    call.once('local', function(local) {
+      localStream = local.stream;
+      localVideo.src = URL.createObjectURL(local.stream);
     });
-    call.once('remotestream', function(stream) {
-      remote = stream;
-      remoteVideo.src = URL.createObjectURL(stream);
+    call.once('remote', function(remote) {
+      remoteStream = remote.stream;
+      remoteVideo.src = URL.createObjectURL(remote.stream);
     });
     call.once('error', function(err) {
       statusEl.textContent = 'ERROR';
@@ -36,19 +35,22 @@
       statusEl.textContent = 'REJECTED';
     });
     call.once('hangup', function() {
-      statusEl.textContent = 'HANGUP';
+      statusEl.textContent = 'HANGED UP';
 
-      //important to stop the stream
-      if (remote)
-        remote.stop();
-      //important to revoke the object url
-      URL.revokeObjectURL(remoteVideo.src);
-      remoteVideo.src = '';
+      if (remoteStream)
+        remoteStream.stop();
+      if (localStream)
+        localStream.stop();
 
-      if (local)
-        local.stop();
-      URL.revokeObjectURL(localVideo.src);
-      localVideo.src = '';
+      if (localVideo && localVideo.src) {
+        URL.revokeObjectURL(localVideo.src);
+        localVideo.src = '';
+      }
+      if (remoteVideo && remoteVideo.src) {
+        URL.revokeObjectURL(remoteVideo.src);
+        remoteVideo.src = '';
+      }
+
     });
   };
 
@@ -58,19 +60,33 @@
     statusEl = document.getElementById('status');
     localVideo = document.getElementById('local');
     remoteVideo = document.getElementById('remote');
+    callEl = callForm.querySelector('input[type="submit"]');
     //CALL
     callForm.addEventListener('submit', function(e) {
       e.preventDefault();
 
       statusEl.textContent = 'CALLING';
 
-      user = this.elements['username'].value;
+      var user = this.elements.username.value;
+      var wanted = this.elements.stream.value;
+
+      var p = {
+        user: user
+      };
+      if (wanted === 'audio' || wanted === 'both')
+        p.audio = true;
+      if (wanted === 'video' || wanted === 'both')
+        p.video = true;
 
       // navigator.getUserMedia({video: true, audio: true},
         //success
         // function (stream) {
-      var call = client.call(user, options);
-      handleCall(call);
+      client.exec('call', p, function(err, call) {
+        if (err)
+          throw err;
+
+        handleCall(call);
+      });
           // localVideo.src = URL.createObjectURL(stream);
 
 
@@ -90,7 +106,7 @@
       var password = this.elements['password'].value;
       var username = this.elements['username'].value;
 
-      client = new global.UppTalk({apikey: 'foobar', host: 'happy.dev.ym.ms', turn: config.turn});
+      client = new global.UppTalk(config);
       client.username = username;
       client.password = password;
       client.open(function(err) {
@@ -102,24 +118,40 @@
 
         statusEl.textContent = 'OPEN';
 
-        this.send('authenticate', {username: this.username, password: this.password}, function(err) {
+        client.exec('authenticate', {username: username, password: password}, function(err) {
           if (err) {
             console.log(err);
             statusEl.textContent = 'AUTHENTICATION FAILED';
+            callEl.disabled = false;
             return;
           }
+
+          callEl.disabled = false;
 
           statusEl.textContent = 'AUTHENTICATED';
         });
       });
+      client.on('open', function() {
+        console.log('OPEN');
+      });
+      client.on('message', function(m) {
+        console.log('IN', m);
+      });
+      client.on('send', function(m) {
+        console.log('OUT', m);
+      });
       client.once('close', function() {
+        console.log('CLOSE');
         statusEl.textContent = 'CLOSED';
       });
       client.on('error', function(err) {
-        console.log(err);
+        console.log('ERROR', err);
         statusEl.textContent = 'ERROR';
+        callEl.disabled = false;
       });
       client.on('call', function(call) {
+
+        console.log(call.user + ' is calling');
         statusEl.textContent = 'RINGING';
 
         // navigator.getUserMedia({video: true, audio: true},
@@ -127,7 +159,8 @@
           // function (stream) {
             // localVideo.src = URL.createObjectURL(stream);
             // call.accept(stream);
-        call.accept(options);
+        call.accept();
+        // call.accept({audio: true, video: true});
         handleCall(call);
           // },
           //error

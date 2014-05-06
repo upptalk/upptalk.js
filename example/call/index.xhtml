@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>upptalk.js call example</title>
+    <meta charset="UTF-8"/>
+  </head>
+  <body>
+    <p id="status">CLOSED</p>
+    <form id="login">
+      <input type="text" name="username" placeholder="username"/>
+      <input type="password" name="password" placeholder="password"/>
+      <input type="submit" value="Login"/>
+    </form>
+    <form id="call">
+      <input type="text" name="username" placeholder="username"/>
+      <select name="stream">
+        <option value="both">audio and video</option>
+        <option value="audio">audio only</option>
+        <option value="video">video only</option>
+      </select>
+      <input type="submit" value="Call" disabled=""/>
+    </form>
+    <video id="local" muted="" autoplay="autoplay"/>
+    <video id="remote" autoplay="autoplay"/>
+  </body>
+  <!-- <script type="application/javascript" src="../../dist/upptalk.js"/> -->
+<!--   <script src="../../node_modules/conducto-client/node_modules/conducto-core/node_modules/wolfy87-eventemitter/EventEmitter.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/httpclient/lib/utils.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/httpclient/lib/browser.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/httpclient/lib/index.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/conducto-core/index.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/conducto-core/lib/utils.js"/>
+  <script src="../../node_modules/conducto-client/node_modules/conducto-core/lib/Connection.js"/>
+  <script src="../../node_modules/conducto-client/lib/Client.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumberMetaData.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumberNormalizer.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumber.js"/>
+  <script src="../../index.js"/>
+  <script src="../../lib/actions/profile.js"/>
+  <script src="../../lib/UppTalk.js"/> -->
+
+  <script src="../../bower_components/conducto/dist/conducto.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumberMetaData.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumberNormalizer.js"/>
+  <script src="../../lib/PhoneNumber/PhoneNumber.js"/>
+  <script src="../../index.js"/>
+  <script src="../../lib/UppTalk.js"/>
+  <script src="../../lib/actions/call.js"/>
+
+  <script type="application/javascript" src="../config.js"/>
+  <script type="application/javascript" src="script.js"/>
+</html>
