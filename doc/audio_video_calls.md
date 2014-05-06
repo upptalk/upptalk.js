@@ -2,6 +2,19 @@
 
 There is an example that shows how to handle both calling and answering cases in example/call.
 
+###### Feature detection
+
+UppTalk.js calls use WebRTC and isn't supported everywhere yet.
+
+```javascript
+if (client.Call) {
+  //calls supported
+}
+else {
+  //calls unsupported
+}
+```
+
 ###### Calling
 
 ```javascript

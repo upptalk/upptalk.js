@@ -126,6 +126,8 @@
             return;
           }
 
+          client.exec('presence');
+
           callEl.disabled = false;
 
           statusEl.textContent = 'AUTHENTICATED';

@@ -2717,7 +2717,7 @@ var PhoneNumber = (function (dataBase) {
   };
   Call.prototype.onaccept = function(p) {
     debug('on accept');
-    this.emit('accept');
+    this.emit('accept', {video: p.video, audio: p.audio});
 
     if (typeof p.video === 'boolean')
       this.remote.video = p.video;
