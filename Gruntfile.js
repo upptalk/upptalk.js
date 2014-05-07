@@ -12,9 +12,8 @@ module.exports = function(grunt) {
           'lib/PhoneNumber/PhoneNumberMetaData.js',
           'lib/PhoneNumber/PhoneNumberNormalizer.js',
           'lib/PhoneNumber/PhoneNumber.js',
-          'index.js',
-          'lib/actions/*.js',
           'lib/UppTalk.js',
+          'lib/actions/*.js'
         ],
         dest: 'dist/upptalk.js'
       }
