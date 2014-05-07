@@ -458,16 +458,16 @@
 	};
 
 	// Expose the class either via AMD, CommonJS or the global object
-	if (typeof define === 'function' && define.amd) {
-		define(function () {
-			return EventEmitter;
-		});
-	}
-	else if (typeof module === 'object' && module.exports){
+	if (typeof module === 'object' && module.exports){
 		module.exports = EventEmitter;
 	}
 	else {
 		this.EventEmitter = EventEmitter;
+		if (typeof define === 'function' && define.amd) {
+			define(function () {
+				return EventEmitter;
+			});
+		}
 	}
 }.call(this));
 
@@ -1387,11 +1387,11 @@
     open: function(options, callback) {
       //arguments
       if (typeof arguments[0] === 'function')
-        callback = arguments[0];
+        callback = arguments[0].bind(this);
       else if (arguments[0]) {
         this.handleOption(arguments[0]);
         if (typeof arguments[1] === 'function')
-          callback = arguments[1];
+          callback = arguments[1].bind(this);
       }
 
       //callback

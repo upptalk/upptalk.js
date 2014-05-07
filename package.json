@@ -1,7 +1,7 @@
 {
   "name": "upptalk",
   "description": "UppTalk client JavaScript library",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Sonny Piers <sonny@upptalk.com>",
   "main": "lib/index.js",
   "bin": {
@@ -20,13 +20,11 @@
     "test": "grunt syntax --verbose"
   },
   "dependencies": {
-    "conducto-client": "~0.0.7",
+    "conducto-client": "~0.0.8",
     "nomnom": "~1.6.2",
-    "es6-promise": "~1.0.0",
     "pretty-data": "~0.40.0"
   },
   "devDependencies": {
-    "wolfy87-eventemitter": "~4.2.6",
     "mocha": "~1.18.2",
     "grunt": "~0.4.4",
     "grunt-cli": "~0.1.13",
@@ -35,7 +33,6 @@
     "grunt-jsvalidate": "~0.2.2",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-mocha-test": "~0.10.2",
-    "grunt-contrib-watch": "~0.6.1",
-    "rewire": "~2.0.0"
+    "grunt-contrib-watch": "~0.6.1"
   }
 }
