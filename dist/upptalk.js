@@ -2132,21 +2132,54 @@ var PhoneNumber = (function (dataBase) {
 
   'use strict';
 
+  var Conducto;
+  var utils;
   if (typeof module !== 'undefined' && module.exports) {
-    var path = require('path');
-    var fs = require('fs');
-    var actionsPath = path.join(__dirname, 'lib', 'actions');
-    var UppTalk = require(path.join(__dirname, 'lib', 'UppTalk.js'));
-    UppTalk.actions = {};
-    var actions = fs.readdirSync(actionsPath);
-    actions.forEach(function(p) {
-      var action = require(path.join(actionsPath, p));
-      UppTalk.actions[action.method] = action.bind;
-    });
-    module.exports = UppTalk;
+    Conducto = require('conducto-client');
+    utils = Conducto.utils;
   }
   else {
-    global.UppTalkActions = {};
+    Conducto = global.conducto.Client;
+    utils = global.conducto.utils;
+  }
+
+  var defaultConfig = {
+    host: 'happy.dev.ym.ms',
+    port: 443,
+    secure: true
+  };
+
+  var UppTalk = function(config) {
+    if (typeof config === 'object') {
+      for (var i in defaultConfig) {
+        if (!(i in config))
+          config[i] = defaultConfig[i];
+      }
+    }
+    else {
+      config = defaultConfig;
+    }
+
+    if (config.apikey) {
+      config.query = {
+        apikey: config.apikey
+      };
+      this.apikey = config.apikey;
+    }
+
+    Conducto.call(this, config);
+
+    for (var j in UppTalk.actions) {
+      this.define(j, UppTalk.actions[j]);
+    }
+  };
+  UppTalk.actions = {};
+  UppTalk.prototype = Conducto.prototype;
+
+  if (typeof module !== 'undefined' && module.exports)
+    module.exports = UppTalk;
+  else {
+    global.UppTalk = UppTalk;
   }
 
 })(this);
@@ -2210,7 +2243,7 @@ var PhoneNumber = (function (dataBase) {
   if (typeof module !== 'undefined' && module.exports)
     module.exports = action;
   else
-    global.UppTalkActions[action.method] = action.bind;
+    global.UppTalk.actions[action.method] = action.bind;
 
 })(this);
 (function(global) {
@@ -2273,62 +2306,6 @@ var PhoneNumber = (function (dataBase) {
   if (typeof module !== 'undefined' && module.exports)
     module.exports = action;
   else
-    global.UppTalkActions[action.method] = action.bind;
+    global.UppTalk.actions[action.method] = action.bind;
 
 })(this);
-(function(global) {
-
-  'use strict';
-
-  var Conducto;
-  var utils;
-  if (typeof module !== 'undefined' && module.exports) {
-    Conducto = require('conducto-client');
-    utils = Conducto.utils;
-  }
-  else {
-    Conducto = global.conducto.Client;
-    utils = global.conducto.utils;
-  }
-
-  var defaultConfig = {
-    host: 'happy.dev.ym.ms',
-    port: 443,
-    secure: true
-  };
-
-  var UppTalk = function(config) {
-    if (typeof config === 'object') {
-      for (var i in defaultConfig) {
-        if (!(i in config))
-          config[i] = defaultConfig[i];
-      }
-    }
-    else {
-      config = defaultConfig;
-    }
-
-    if (config.apikey) {
-      config.query = {
-        apikey: config.apikey
-      };
-      this.apikey = config.apikey;
-    }
-
-    Conducto.call(this, config);
-
-    for (var j in UppTalk.actions) {
-      this.define(j, UppTalk.actions[j]);
-    }
-  };
-  UppTalk.prototype = Conducto.prototype;
-
-  if (typeof module !== 'undefined' && module.exports)
-    module.exports = UppTalk;
-  else {
-    UppTalk.actions = global.UppTalkActions;
-    global.UppTalk = UppTalk;
-  }
-
-})(this);
-
