@@ -41,21 +41,24 @@
       },
       //callback style:
       function(err, res) {
-        console.log('callback done', err, res);
+        if (err)
+          return console.log('callback error', err);
+
+        console.log('callback done', res);
       },
       function(sent, total) {
         console.log('callback progress', (sent * 100 / total) + '%');
       }
     );
-    //promise style :
-    p.then(function(res, err) {
-      console.log('promise done', err, res);
+    //promise style:
+    p.then(function(res) {
+      console.log('promise done', res);
     });
     p.onprogress = function(sent, total) {
       console.log('promise progress', (sent * 100 / total) + '%');
     };
     p.catch(function(err) {
-      console.log(err);
+      console.log('promise error', err);
     });
   });
 
