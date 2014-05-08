@@ -9,6 +9,9 @@
   var submit = form.elements.submit;
 
   var client = new UppTalk(config);
+  global.client = client;
+  client.username = 'sonnyp';
+  client.password = 'tototo';
   client.on('open', function() {
     console.log('OPEN');
   });
@@ -23,7 +26,7 @@
     console.log('IN:', m);
   });
   client.open(function() {
-    client.exec('authenticate', {username: config.username, password: config.password}, function(err) {
+    client.exec('authenticate', {username: client.username, password: client.password}, function(err) {
       if (err)
         return console.error(err);
 
