@@ -9,6 +9,9 @@
   var submit = form.elements.submit;
 
   var client = new UppTalk(config);
+  global.client = client;
+  client.username = 'sonnyp';
+  client.password = 'tototo';
   client.on('open', function() {
     console.log('OPEN');
   });
@@ -23,7 +26,7 @@
     console.log('IN:', m);
   });
   client.open(function() {
-    client.exec('authenticate', {username: config.username, password: config.password}, function(err) {
+    client.exec('authenticate', {username: client.username, password: client.password}, function(err) {
       if (err)
         return console.error(err);
 
@@ -41,21 +44,24 @@
       },
       //callback style:
       function(err, res) {
-        console.log('callback done', err, res);
+        if (err)
+          return console.log('callback error', err);
+
+        console.log('callback done', res);
       },
       function(sent, total) {
         console.log('callback progress', (sent * 100 / total) + '%');
       }
     );
-    //promise style :
-    p.then(function(res, err) {
-      console.log('promise done', err, res);
+    //promise style:
+    p.then(function(res) {
+      console.log('promise done', res);
     });
     p.onprogress = function(sent, total) {
       console.log('promise progress', (sent * 100 / total) + '%');
     };
     p.catch(function(err) {
-      console.log(err);
+      console.log('promise error', err);
     });
   });
 

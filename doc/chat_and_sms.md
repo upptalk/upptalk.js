@@ -103,11 +103,23 @@ var message = {
 
 client.exec('chat', message,
   //done
-  function(err) {
+  function(err, m) {
     if (err)
-      console.log(err);
-    else
-      console.log('message sent');
+      return console.log(err);
+
+    console.log('message sent');
+    var file = m.file;
+    file.size //size of the file
+    file.url //url of the file
+    file.type //type of the file
+
+    var thumbnail = file.thumbnail;
+    //thumbnail are only generated for videos and images, but even for those it might fail
+    if (thumbnail) {
+      thumbnail.size //size of the thumbnail
+      thumbnail.url //url of the thumbnail
+      thumbnail.type //type of the thumbnail
+    }
   },
   //progress
   function(sent, total) {
@@ -120,4 +132,4 @@ client.exec('chat', message,
 );
 ```
 
-There is also an example in doc/send-file.
+There is also an example in ```example/send-file``` .
