@@ -1,4 +1,5 @@
 ### Receipts
+
 ##### Listen receipt
 ```javascript
 client.on('receipt', function(receipt) {
@@ -6,6 +7,7 @@ client.on('receipt', function(receipt) {
   //receipt.type can be 'sent' or 'received' or 'read' or 'error'
 });
 ```
+
 ##### Send receipt
 ```javascript
 var receipt = {
@@ -14,33 +16,16 @@ var receipt = {
 }
 client.exec('receipt', receipt);
 ```
-### Upload
-```javascript
-client.exec('upload', File, function(err, res) {
-
-});
-```
-
 
 ### Message
-##### Upload a file
-```javascript
-client.exec('upload', file,
-  //when request completes
-  function(err, result) {
-  },
-  //when progress
-  function(progress) {
-    //progress is a % number
-  }
-);
-```
+
 ##### Listen message
 ```javascript
-client.on('message', function(message) {
+client.on('chat', function(chat) {
 
 });
 ```
+
 ##### Send message
 
 ```javascript
