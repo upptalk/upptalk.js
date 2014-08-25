@@ -58,7 +58,7 @@ module.exports = function(grunt) {
     watch: {
       scripts: {
         files: "<%= concat.dist.src %>",
-        tasks: ['jsvalidate', 'build'],
+        tasks: ['build'],
         options: {
           spawn: false,
         },
