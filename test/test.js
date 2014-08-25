@@ -26,7 +26,7 @@
       var client = new UppTalk();
       assert(client.secure === true);
       assert(client.port === 443);
-      assert(client.host === 'happy.dev.ym.ms');
+      assert(client.host === 'happy.ym.ms');
     });
 
     test('custom config, default values', function() {

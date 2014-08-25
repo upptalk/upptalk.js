@@ -211,7 +211,8 @@ var done = function(err, res) {
       console.log(res);
   }
 
-  DEBUG('RECEIVED RESPONSE', Date.now() - timeAtSending + 'ms');
+  if (timeAtSending)
+    DEBUG('RECEIVED RESPONSE', Date.now() - timeAtSending + 'ms');
 
   if (!opts.keepalive) {
     DEBUG('CLOSING');
